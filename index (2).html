@@ -1,0 +1,1003 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><title>Всё сдал · Аналитика</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1020"><meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --bg1:#0b1020;--bg2:#141a33;--m1:#5e5ce6;--m2:#30d1a8;--m3:#ff6b9a;--fg:#f2f4f8;--mut:rgba(235,240,255,.62);--line:rgba(255,255,255,.10);
+  --glass:linear-gradient(135deg,rgba(255,255,255,.13),rgba(255,255,255,.04));
+  --glassB:rgba(255,255,255,.20);--hi:rgba(255,255,255,.35);--shadow:0 18px 50px rgba(0,0,0,.45);
+  --g:#30d158;--o:#ff9f0a;--r:#ff453a;--n:#8e8e93;--acc:#64d2ff;
+}
+body.light .drawer{background:rgba(255,255,255,.86)!important}
+body.light{
+  --bg1:#e9eefb;--bg2:#f7f2ff;--fg:#14161c;--mut:rgba(20,22,28,.58);--line:rgba(0,0,0,.08);
+  --glass:linear-gradient(135deg,rgba(255,255,255,.75),rgba(255,255,255,.42));
+  --glassB:rgba(255,255,255,.9);--hi:rgba(255,255,255,.95);--shadow:0 18px 45px rgba(60,70,120,.18);
+  --g:#28b44e;--o:#f08c00;--r:#e5383b;--acc:#0a84ff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{font:14px -apple-system,"SF Pro Text","Segoe UI",Roboto,Arial,sans-serif;color:var(--fg);
+  background:radial-gradient(1200px 800px at 10% -10%,var(--bg2),transparent),var(--bg1);overflow-x:hidden}
+/* плавающие цветные пятна под стеклом */
+.blob{position:fixed;border-radius:50%;opacity:.45;z-index:0;pointer-events:none;will-change:transform;
+  animation:float 22s ease-in-out infinite alternate;transition:background 1.6s ease}
+/* пятна нарисованы готовым мягким градиентом — без дорогого filter:blur */
+.b1{width:760px;height:760px;left:-260px;top:-240px;background:radial-gradient(circle,var(--m1) 0,transparent 68%)}
+.b2{width:680px;height:680px;right:-240px;top:120px;animation-duration:27s;background:radial-gradient(circle,var(--m2) 0,transparent 68%)}
+.b3{width:640px;height:640px;left:28%;bottom:-300px;animation-duration:31s;background:radial-gradient(circle,var(--m3) 0,transparent 68%)}
+body.light .blob{opacity:.42}
+@keyframes float{0%{transform:translate3d(0,0,0)}50%{transform:translate3d(50px,35px,0)}100%{transform:translate3d(-35px,60px,0)}}
+/* настроение дня: окраска фона */
+.mood{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;transition:opacity 1.6s ease}
+.mood.on{opacity:1}
+#mGood{background:radial-gradient(1100px 700px at 15% 0%,rgba(48,209,88,.30),transparent 70%),radial-gradient(900px 700px at 100% 100%,rgba(48,209,160,.22),transparent 70%)}
+#mMid{background:radial-gradient(1100px 700px at 15% 0%,rgba(255,176,32,.30),transparent 70%),radial-gradient(900px 700px at 100% 100%,rgba(255,140,40,.20),transparent 70%)}
+#mBad{background:radial-gradient(1100px 700px at 15% 0%,rgba(255,80,90,.24),transparent 70%),radial-gradient(900px 700px at 100% 100%,rgba(150,150,170,.20),transparent 70%)}
+.moodchip{font-size:12px;font-weight:700;padding:5px 11px;border-radius:999px;border:1px solid var(--glassB);background:var(--glass);transition:color .6s}
+.wrap{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:22px 22px 40px}
+.glass{position:relative;background:var(--glass);backdrop-filter:blur(16px) saturate(160%);-webkit-backdrop-filter:blur(16px) saturate(160%);
+  border:1px solid var(--glassB);border-radius:22px;box-shadow:inset 0 1px 0 var(--hi),var(--shadow);contain:paint}
+.glass::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(160deg,rgba(255,255,255,.10),transparent 40%)}
+body.calm .rise{animation:none;opacity:1;transform:none}
+body.calm .bar,body.calm .arc{transition:none}
+.rise{opacity:0;transform:translateY(14px) scale(.985);animation:rise .6s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 18px;margin-bottom:16px}
+h1{font-size:20px;margin:0;font-weight:700;letter-spacing:.2px}
+.live{display:flex;align-items:center;gap:7px;color:var(--mut);font-size:12px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--g);box-shadow:0 0 0 0 rgba(48,209,88,.7);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(48,209,88,.6)}70%{box-shadow:0 0 0 9px rgba(48,209,88,0)}100%{box-shadow:0 0 0 0 rgba(48,209,88,0)}}
+.seg{margin-left:auto;display:flex;padding:4px;border-radius:14px;background:rgba(127,127,127,.16);border:1px solid var(--line);position:relative}
+.seg button{position:relative;z-index:1;border:0;background:none;color:var(--fg);font:600 13px inherit;padding:7px 14px;border-radius:10px;cursor:pointer;transition:color .2s}
+.seg .pill{position:absolute;top:4px;bottom:4px;border-radius:10px;background:var(--glass);border:1px solid var(--glassB);
+  box-shadow:inset 0 1px 0 var(--hi),0 4px 14px rgba(0,0,0,.2);transition:left .35s cubic-bezier(.3,1.3,.5,1),width .35s}
+.iconbtn{border:1px solid var(--glassB);background:var(--glass);color:var(--fg);border-radius:12px;padding:7px 11px;cursor:pointer;font-size:14px}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:16px}
+.kpi{padding:14px 16px;cursor:pointer;transition:transform .25s,box-shadow .25s}
+.kpi:hover,.card.click:hover{transform:translateY(-3px)}
+.kpi .l{color:var(--mut);font-size:12px;margin-bottom:6px}
+.kpi .v{font-size:25px;font-weight:750;letter-spacing:-.3px;white-space:nowrap}
+.kpi .d{font-size:12px;margin-top:5px;color:var(--mut)}
+.up{color:#4ade80}.down{color:#ff8f8f}
+body.light .up{color:var(--g)}body.light .down{color:var(--r)}
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-bottom:16px}
+.grid>*,.grid2>*,.kpis>*{min-width:0}
+.row>*{min-width:0}
+.card{padding:16px 18px;transition:transform .25s}
+.card h2{font-size:15px;margin:0 0 4px;font-weight:700}
+.card .sub{color:var(--mut);font-size:12px;margin-bottom:10px}
+.chart{width:100%;position:relative}
+svg text{font-family:inherit}
+.bar{transform-box:fill-box;transform-origin:bottom;transform:scaleY(0);transition:transform .9s cubic-bezier(.2,.9,.2,1),opacity .2s;cursor:pointer}
+.grown .bar{transform:scaleY(1)}
+.bar:hover{opacity:.82}
+.arc{transition:stroke-dasharray 1.1s cubic-bezier(.3,.9,.3,1),stroke-width .2s;cursor:pointer}
+.arc:hover{stroke-width:30}
+.legend{display:flex;flex-direction:column;gap:10px}
+.lg{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:14px;cursor:pointer;transition:background .2s}
+.lg:hover{background:rgba(127,127,127,.14)}
+.sw{width:12px;height:12px;border-radius:4px;flex:none;box-shadow:0 0 10px currentColor}
+.rank{margin-left:auto;font-size:12px;color:var(--mut)}
+.hm{display:grid;grid-template-columns:28px repeat(24,1fr);gap:3px;font-size:10px;color:var(--mut)}
+.hm .c{aspect-ratio:1;border-radius:5px;background:rgba(127,127,127,.12);cursor:pointer;transition:transform .15s}
+.hm .c:hover{transform:scale(1.35);outline:1px solid var(--glassB)}
+.list{max-height:330px;overflow-y:auto;overflow-x:hidden}
+.row{display:flex;gap:10px;align-items:center;padding:8px 6px;border-bottom:1px solid var(--line);font-size:13px}
+.row a{color:var(--acc);text-decoration:none}
+.chip{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;color:#fff;white-space:nowrap}
+.tip{position:fixed;z-index:50;pointer-events:none;padding:8px 11px;border-radius:12px;font-size:12px;opacity:0;transform:translateY(4px);
+  transition:opacity .15s,transform .15s;white-space:nowrap}
+.tip.on{opacity:1;transform:none}
+/* боковая панель подробностей */
+.drawer{position:fixed;top:14px;right:14px;bottom:14px;width:380px;z-index:40;padding:18px;overflow:auto;background:rgba(22,26,44,.82)!important;
+  transform:translateX(110%);transition:transform .45s cubic-bezier(.2,.9,.2,1)}
+.drawer.open{transform:none}
+.drawer h3{margin:0 0 2px;font-size:18px}
+.dx{position:absolute;top:12px;right:12px}
+.stat{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)}
+.stat b{font-variant-numeric:tabular-nums}
+.empty{color:var(--mut);padding:30px 0;text-align:center}
+.prgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
+.pr{padding:14px;border-radius:16px;background:rgba(127,127,127,.12);cursor:pointer;transition:transform .2s}
+.pr:hover{transform:translateY(-2px)}
+.pr .h{display:flex;align-items:center;gap:8px;margin-bottom:8px}.pr .h b{font-size:15px}
+.badge{margin-left:auto;font-size:11.5px;font-weight:800;padding:4px 10px;border-radius:999px;color:#fff;white-space:nowrap}
+.b-up{background:#30d158}.b-down{background:#ff9f0a}.b-keep{background:#0a84ff}.b-wait{background:#8e8e93}
+.pr .nums{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;font-size:12px;color:var(--mut);margin-bottom:8px}
+.pr .nums b{display:block;color:var(--fg);font-size:16px}
+.pr .why{font-size:12.5px;line-height:1.4}
+.conv{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin:2px 0 8px}.conv i{display:block;height:100%;border-radius:3px;background:var(--acc);transition:width 1s}
+.exec{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px}
+.exec .tot{font-size:22px;font-weight:800;margin-right:6px}
+@media (max-width:980px){.prgrid{grid-template-columns:1fr}}
+.msgwrap{display:grid;grid-template-columns:250px minmax(0,1fr);gap:18px;align-items:start}
+.ms{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ms>div{padding:10px 12px;border-radius:14px;background:rgba(127,127,127,.12);cursor:default}
+.ms .l{color:var(--mut);font-size:11px;margin-bottom:3px}.ms .v{font-size:19px;font-weight:750}
+.ms .w{grid-column:1/3}
+.season{margin-top:10px;padding:10px 12px;border-radius:14px;border:1px solid var(--glassB);font-size:12.5px;line-height:1.4}
+@media (max-width:980px){.msgwrap{grid-template-columns:1fr}}
+.bulb{position:fixed;right:22px;bottom:22px;z-index:45;width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:26px;cursor:pointer;transition:transform .25s}
+.bulb:hover{transform:scale(1.08)}
+.bulb.glow{animation:glow 2.4s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:inset 0 1px 0 var(--hi),0 0 0 rgba(255,214,10,0)}50%{box-shadow:inset 0 1px 0 var(--hi),0 0 26px rgba(255,214,10,.55)}}
+.idea{position:fixed;right:22px;bottom:88px;z-index:45;width:360px;max-width:calc(100vw - 44px);padding:16px 18px 14px;
+  opacity:0;transform:translateY(12px) scale(.97);pointer-events:none;transition:opacity .35s,transform .35s cubic-bezier(.2,.9,.2,1)}
+.idea.on{opacity:1;transform:none;pointer-events:auto}
+.idea .t{font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.idea .txt{line-height:1.45;min-height:42px;transition:opacity .25s}
+.idea .nav{display:flex;align-items:center;gap:8px;margin-top:10px;color:var(--mut);font-size:12px}
+.idea .nav button{border:1px solid var(--glassB);background:var(--glass);color:var(--fg);border-radius:9px;padding:3px 9px;cursor:pointer}
+.dots{display:flex;gap:5px;margin-left:auto}.dots i{width:6px;height:6px;border-radius:50%;background:var(--line)}.dots i.a{background:var(--fg)}
+@media (max-width:980px){.kpis{grid-template-columns:repeat(2,1fr)}.grid,.grid2{grid-template-columns:1fr}.drawer{width:auto;left:14px}}
+
+/* ===== быстрая и компактная отрисовка ===== */
+/* стекло без размытия фона: пятна под ним и так мягкие, а прокрутка не тормозит */
+:root{--glass:linear-gradient(135deg,rgba(44,50,82,.80),rgba(22,26,46,.74));--shadow:0 6px 20px rgba(0,0,0,.24)}
+body.light{--glass:linear-gradient(135deg,rgba(255,255,255,.88),rgba(255,255,255,.70));--shadow:0 6px 18px rgba(60,70,120,.12)}
+.glass{backdrop-filter:none;-webkit-backdrop-filter:none;contain:layout paint}
+.drawer.glass,.idea.glass{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.blob{animation:none;will-change:auto}
+.rise{animation-duration:.35s}
+.bar{transition-duration:.55s}
+.wrap{padding:14px 18px 28px}
+header{padding:10px 14px;margin-bottom:12px}
+.kpis{gap:10px;margin-bottom:12px}.kpi{padding:11px 13px}.kpi .v{font-size:21px}.kpi .l{margin-bottom:4px}
+.grid,.grid2{gap:12px;margin-bottom:12px}
+.card{padding:13px 15px}.card .sub{margin-bottom:6px}
+.card[style*="margin-bottom:16px"]{margin-bottom:12px!important}
+.hm .c{aspect-ratio:auto;height:13px}
+.prgrid{gap:10px;margin-top:10px}.pr{padding:11px 12px}.pr .nums b{font-size:14px}
+.pr .why{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.msgwrap{grid-template-columns:210px minmax(0,1fr);gap:14px}
+.ms{gap:8px}.ms>div{padding:8px 10px}.ms .v{font-size:17px}.season{margin-top:8px;padding:8px 10px}
+.list{max-height:260px}.legend{gap:5px}.lg{padding:6px 9px}
+/* аккуратная шапка: без лишних рамок */
+.seg{border:0;background:rgba(127,127,127,.14)}
+.seg .pill{border:0;box-shadow:inset 0 1px 0 var(--hi),0 2px 8px rgba(0,0,0,.18)}
+.iconbtn{border:0;background:rgba(127,127,127,.16);line-height:1;min-width:34px;height:34px;padding:0 10px!important;display:inline-flex;align-items:center;justify-content:center;font-size:15px}
+.moodchip{border:0;background:rgba(127,127,127,.16)}.moodchip:empty{display:none}
+.idea .nav button{border:0;background:rgba(127,127,127,.18)}
+#refresh span{display:inline-block}#refresh.spin{animation:none}#refresh.spin span{animation:spin .9s linear infinite}
+/* доход */
+.ih{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}.ih h2{margin:0}
+.iseg{margin-left:auto;display:flex;gap:2px;padding:3px;border-radius:11px;background:rgba(127,127,127,.16)}
+.iseg button{border:0;background:none;color:var(--mut);font:600 12px inherit;padding:5px 10px;border-radius:8px;cursor:pointer;transition:background .2s,color .2s}
+.iseg button.a{background:var(--glass);color:var(--fg);box-shadow:inset 0 1px 0 var(--hi),0 2px 8px rgba(0,0,0,.18)}
+.inc{display:grid;grid-template-columns:220px minmax(0,1fr);gap:16px;align-items:center}
+.ibig .v{font-size:30px;font-weight:800;letter-spacing:-.5px;white-space:nowrap}
+.ibig .d{font-size:12px;color:var(--mut);margin-top:4px;line-height:1.45}
+.ifoot{margin-top:6px;font-size:12px;color:var(--mut)}
+@media (max-width:640px){.inc{grid-template-columns:1fr;gap:6px}.iseg{margin-left:0;width:100%}.iseg button{flex:1;padding:6px 2px}.ibig .v{font-size:26px}}
+/* ===== телефон ===== */
+.hdr-actions{display:flex;gap:8px;align-items:center}
+@keyframes spin{to{transform:rotate(360deg)}}
+.setup{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.45)}
+.setup.on{display:flex}
+.setup .box{width:100%;max-width:420px;padding:20px}
+.setup input{width:100%;margin:10px 0 12px;padding:12px 14px;border-radius:12px;border:1px solid var(--glassB);background:rgba(127,127,127,.15);color:var(--fg);font:15px inherit}
+.setup button{width:100%;padding:12px;border:0;border-radius:12px;background:var(--acc);color:#001;font:700 15px inherit}
+.toast{position:fixed;left:50%;top:14px;transform:translate(-50%,-20px);opacity:0;z-index:70;padding:9px 14px;font-size:13px;transition:.3s;pointer-events:none}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (max-width:640px){
+  body{font-size:13.5px}
+  .wrap{padding:calc(10px + env(safe-area-inset-top)) 10px 90px}
+  header{display:grid;grid-template-columns:1fr auto;gap:10px;padding:12px 14px;border-radius:20px}
+  h1{font-size:17px}
+  .moodchip{grid-row:1;grid-column:2;justify-self:end}
+  .live{grid-row:2;grid-column:1;font-size:11px}
+  .hdr-actions{grid-row:2;grid-column:2;justify-content:flex-end}.hdr-actions .iconbtn{padding:5px 10px}
+  .seg{grid-row:3;grid-column:1/3;margin-left:0;justify-content:space-between}.seg button{flex:1;padding:7px 4px;font-size:12.5px}
+  #donut{width:100%;display:flex;justify-content:center}
+  #legend{min-width:100%!important}
+  .idea{background:rgba(18,20,34,.93)!important}
+  body.light .idea{background:rgba(255,255,255,.95)!important}
+  #theme{display:none}
+  .kpis{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .kpis .kpi:first-child{grid-column:1/3}
+  .kpi{padding:12px 13px;border-radius:18px}.kpi .v{font-size:20px}.kpi .l,.kpi .d{font-size:11px}
+  .grid,.grid2{gap:12px;margin-bottom:12px}
+  .card{padding:14px 13px;border-radius:20px}.card h2{font-size:14px}
+  .card[style*="margin-bottom:16px"]{margin-bottom:12px!important}
+  #donut svg{width:150px;height:150px}
+  .hm{grid-template-columns:22px repeat(24,1fr);gap:2px;font-size:9px}.hm .c{border-radius:3px}
+  .msgwrap{gap:12px}
+  .drawer{top:auto;left:0;right:0;bottom:0;width:auto;max-height:86vh;border-radius:24px 24px 0 0;transform:translateY(105%);padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+  .drawer.open{transform:none}
+  .idea{right:10px;left:10px;width:auto;bottom:calc(78px + env(safe-area-inset-bottom))}
+  .bulb{right:14px;bottom:calc(14px + env(safe-area-inset-bottom));width:52px;height:52px}
+  .tip{display:none}
+}
+</style></head>
+<body>
+<div class="mood" id="mGood"></div><div class="mood" id="mMid"></div><div class="mood" id="mBad"></div>
+<div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+<div class="wrap" id="an-root">
+  <header class="glass rise">
+    <h1>Аналитика ставок</h1>
+    <div class="live"><span class="dot"></span><span id="upd">данные загружаются…</span></div>
+    <span class="moodchip" id="moodchip"></span>
+    <div class="seg" id="seg"><span class="pill"></span>
+      <button data-p="week">Неделя</button><button data-p="month">Месяц</button><button data-p="year">Год</button><button data-p="all">Всё время</button>
+    </div>
+    <div class="hdr-actions"><button class="iconbtn" id="refresh" title="Обновить"><span>⟳</span></button><button class="iconbtn" id="setupBtn" title="Канал">⚙︎</button></div>
+    <button class="iconbtn" id="theme" title="Тема">◐</button>
+  </header>
+  <div class="kpis" id="kpis"></div>
+  <div class="card glass rise" style="animation-delay:.08s;margin-bottom:16px"><div class="ih"><h2>Доход</h2>
+    <div class="iseg" id="incSeg"><button data-p="today">Сегодня</button><button data-p="week">Неделя</button><button data-p="month">Месяц</button><button data-p="year">Год</button><button data-p="all">Всё время</button></div></div>
+    <div class="inc"><div class="ibig"><div class="v" id="incV">—</div><div class="d" id="incD"></div></div><div class="chart" id="inc"></div></div>
+    <div class="ifoot" id="incFoot"></div></div>
+  <div class="grid">
+    <div class="card glass rise click" style="animation-delay:.12s"><h2>Сумма ставок в рублях</h2><div class="sub" id="moneySub"></div><div class="chart" id="money"></div></div>
+    <div class="card glass rise" style="animation-delay:.18s"><h2>Доля по типам работ</h2><div class="sub">Цвет по месту: больше всех – зелёный, середина – оранжевый, меньше всех – красный</div>
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><div id="donut"></div><div class="legend" id="legend" style="flex:1;min-width:190px"></div></div></div>
+  </div>
+  <div class="card glass rise" style="animation-delay:.24s;margin-bottom:16px"><h2>Количество ставок</h2><div class="sub" id="cntSub"></div><div class="chart" id="counts"></div></div>
+  <div class="card glass rise" style="animation-delay:.27s;margin-bottom:16px"><h2>Сообщения от заказчиков</h2><div class="sub" id="msgSub"></div>
+    <div class="msgwrap"><div id="msgStats"></div><div class="chart" id="msgs"></div></div></div>
+  <div class="card glass rise" style="animation-delay:.29s;margin-bottom:16px"><h2>Цены и выбор заказчиков</h2><div class="sub" id="prSub"></div>
+    <div id="prExec"></div><div class="prgrid" id="prGroups"></div></div>
+  <div class="grid2">
+    <div class="card glass rise" style="animation-delay:.3s"><h2>Когда больше всего ставок</h2><div class="sub">День недели × час, за выбранный период</div><div id="heat"></div></div>
+    <div class="card glass rise" style="animation-delay:.36s"><h2>Последние ставки</h2><div class="sub" id="lastSub"></div><div class="list" id="last"></div></div>
+  </div>
+</div>
+<div class="drawer glass" id="drawer"><button class="iconbtn dx" id="dx">✕</button><div id="dbody"></div></div>
+<div class="tip glass" id="tip"></div>
+<div class="toast glass" id="toast"></div>
+<div class="setup" id="setup"><div class="box glass"><h3 style="margin:0 0 6px">Подключение</h3>
+  <div style="color:var(--mut);font-size:13px;line-height:1.45">Впишите название вашего канала ntfy – то же, что в приложении ntfy. По нему телефон получает аналитику с компьютера.</div>
+  <input id="topicIn" placeholder="vsesdal-…" autocapitalize="off" autocomplete="off" spellcheck="false"><button id="topicOk">Подключить</button></div></div>
+<div class="bulb glass glow" id="bulb" title="Советы по аналитике">💡</div>
+<div class="idea glass" id="idea"><div class="t">💡 <span id="ideaTitle">Совет</span></div><div class="txt" id="ideaTxt"></div>
+  <div class="nav"><button id="ideaPrev">‹</button><button id="ideaNext">›</button><div class="dots" id="ideaDots"></div><button id="ideaX" style="margin-left:6px">✕</button></div></div>
+<script>
+(function () {
+  // данные: из кэша телефона, затем свежий снимок с компьютера через ntfy
+  let D = window.__DEMO__ || (() => { try { return JSON.parse(localStorage.getItem('an-cache') || 'null'); } catch (e) { return null; } })() ||
+    { daily: {}, history: [], stats: {}, msgs: null, now: 0, theme: 'dark' };
+  const GROUPS = [
+    { label: 'Статьи и др.', price: '1 000', val: 1000 },
+    { label: 'Курсовые', price: '3 000', val: 3000 },
+    { label: 'Дипломы', price: '10 000', val: 10000 },
+  ];
+  const $ = (id) => document.getElementById(id);
+  const z = (x) => String(x).padStart(2, '0');
+  const dayKey = (d) => d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+  const parseKey = (k) => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
+  const WD = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+  const WDF = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
+  const MON = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+  const MONF = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
+  const rub = (n) => Math.round(n).toLocaleString('ru-RU') + ' ₽';
+  const rubShort = (n) => n >= 1e6 ? (n / 1e6).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' млн' :
+    n >= 1e3 ? (n / 1e3).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' тыс.' : String(n);
+  const plural = (n, a, b, c) => { const x = n % 10, y = n % 100; return x === 1 && y !== 11 ? a : x >= 2 && x <= 4 && (y < 12 || y > 14) ? b : c; };
+  const bids = (n) => n + ' ' + plural(n, 'ставка', 'ставки', 'ставок');
+  const sumBy = (by) => GROUPS.reduce((a, g) => a + (by[g.price] || 0), 0);
+  const money = (by) => GROUPS.reduce((a, g) => a + (by[g.price] || 0) * g.val, 0);
+  const css = (v) => getComputedStyle(document.body).getPropertyValue(v).trim();
+  const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  // цвет группы — по её месту в выбранном периоде
+  function rankColors(by) {
+    const counts = GROUPS.map((g) => by[g.price] || 0);
+    const levels = [...new Set(counts.filter((c) => c > 0))].sort((a, b) => b - a);
+    const C = [css('--g'), css('--o'), css('--r')];
+    const map = {}, rank = {};
+    GROUPS.forEach((g, i) => {
+      const c = counts[i];
+      if (!c) { map[g.price] = css('--n'); rank[g.price] = 0; return; }
+      const r = levels.indexOf(c);
+      map[g.price] = levels.length === 1 ? C[0] : levels.length === 2 ? C[r === 0 ? 0 : 2] : C[r];
+      rank[g.price] = r + 1;
+    });
+    return { map, rank };
+  }
+
+  // ---------- периоды ----------
+  let period = localStorage.getItem('an-period') || 'week';
+  function dayRange(n) {
+    const out = [];
+    for (let i = n - 1; i >= 0; i--) { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - i); out.push(d); }
+    return out;
+  }
+  function dayBucket(d) {
+    const k = dayKey(d), e = (D.daily || {})[k] || {};
+    const me = ((D.msgs || {}).daily || {})[k] || {};
+    return { key: k, days: [k], by: { ...(e.by || {}) }, h: (e.h || Array(24).fill(0)).slice(), msg: me.n || 0, mh: (me.h || Array(24).fill(0)).slice(),
+      label: period === 'week' ? z(d.getDate()) + '.' + z(d.getMonth() + 1) : String(d.getDate()),
+      label2: period === 'week' ? WD[d.getDay()] : '',
+      full: WDF[d.getDay()] + ', ' + z(d.getDate()) + '.' + z(d.getMonth() + 1) + '.' + d.getFullYear(), date: d, isDay: true };
+  }
+  function monthBucket(y, m) {
+    const b = { key: y + '-' + z(m + 1), days: [], by: {}, h: Array(24).fill(0), msg: 0, mh: Array(24).fill(0), label: MON[m], label2: String(y).slice(2),
+      full: MONF[m] + ' ' + y, isDay: false, y, m };
+    Object.entries(D.daily || {}).forEach(([k, e]) => {
+      const d = parseKey(k);
+      if (d.getFullYear() === y && d.getMonth() === m) {
+        b.days.push(k);
+        GROUPS.forEach((g) => { b.by[g.price] = (b.by[g.price] || 0) + ((e.by || {})[g.price] || 0); });
+        (e.h || []).forEach((v, i) => { b.h[i] += v; });
+      }
+    });
+    Object.entries(((D.msgs || {}).daily) || {}).forEach(([k, e]) => {
+      const d = parseKey(k);
+      if (d.getFullYear() === y && d.getMonth() === m) {
+        b.msg += e.n || 0;
+        (e.h || []).forEach((v, i) => { b.mh[i] += v; });
+        if (!b.days.includes(k)) b.days.push(k);
+      }
+    });
+    return b;
+  }
+  function buckets(p, shift = 0) {
+    if (p === 'week' || p === 'month') {
+      const n = p === 'week' ? 7 : 30;
+      return dayRange(n * (shift + 1)).slice(0, n).map(dayBucket);
+    }
+    let first = new Date();
+    if (p === 'year') first.setMonth(first.getMonth() - 11 - shift * 12);
+    else {
+      const keys = Object.keys(D.daily || {}).sort();
+      first = keys.length ? parseKey(keys[0]) : new Date();
+      if (shift) return [];
+    }
+    const out = [], cur = new Date(first.getFullYear(), first.getMonth(), 1);
+    const last = p === 'year' ? new Date(cur.getFullYear(), cur.getMonth() + 11, 1) : new Date();
+    while (cur <= last) { out.push(monthBucket(cur.getFullYear(), cur.getMonth())); cur.setMonth(cur.getMonth() + 1); }
+    return out;
+  }
+  const totalBy = (bs) => { const by = {}; bs.forEach((b) => GROUPS.forEach((g) => { by[g.price] = (by[g.price] || 0) + (b.by[g.price] || 0); })); return by; };
+  const periodName = { week: 'за 7 дней', month: 'за 30 дней', year: 'за 12 месяцев', all: 'за всё время' };
+
+  // ---------- подсказка ----------
+  const tip = $('tip');
+  function showTip(e, html) { tip.innerHTML = html; tip.classList.add('on'); moveTip(e); }
+  function moveTip(e) { const x = Math.min(e.clientX + 14, innerWidth - tip.offsetWidth - 10); tip.style.left = x + 'px'; tip.style.top = (e.clientY + 14) + 'px'; }
+  const hideTip = () => tip.classList.remove('on');
+
+  // ---------- анимированный счёт ----------
+  function countUp(el, to, fmt) {
+    if (document.body.classList.contains('calm')) { el.textContent = fmt(to); return; }
+    const from = 0, t0 = performance.now(), dur = 900;
+    const step = (t) => { const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(from + (to - from) * e); if (k < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  }
+
+  // ---------- столбчатая диаграмма (SVG) ----------
+  function barChart(el, bs, valueOf, opts) {
+    const W = Math.max(320, el.clientWidth), H = opts.h || 250, padL = 74, padB = 40, padT = 26, padR = 8;
+    const vals = bs.map(valueOf);
+    const max = Math.max(1, ...vals.map((v) => (Array.isArray(v) ? v.reduce((a, x) => a + x.v, 0) : v)));
+    const nice = (m) => { const p = Math.pow(10, Math.floor(Math.log10(m))); const f = m / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; };
+    const top = opts.int ? (max <= 40 ? Math.max(4, Math.ceil(max / 4) * 4) : Math.ceil(nice(max) / 4) * 4) : nice(max), plotW = W - padL - padR, plotH = H - padT - padB, bw = plotW / bs.length;
+    let s = '<svg width="' + W + '" height="' + H + '">';
+    for (let i = 0; i <= 4; i++) {
+      const y = padT + plotH - plotH * i / 4;
+      s += '<line x1="' + padL + '" x2="' + (W - padR) + '" y1="' + y + '" y2="' + y + '" stroke="' + css('--line') + '"/>' +
+        '<text x="' + (padL - 8) + '" y="' + (y + 4) + '" text-anchor="end" font-size="11" fill="' + css('--mut') + '">' + opts.axis(top * i / 4) + '</text>';
+    }
+    bs.forEach((b, i) => {
+      const v = vals[i], x = padL + i * bw + bw * 0.16, w = Math.max(3, bw * 0.68);
+      const segs = Array.isArray(v) ? v : [{ v, c: opts.color }];
+      let y = padT + plotH;
+      const tot = segs.reduce((a, x) => a + x.v, 0);
+      segs.forEach((sg) => {
+        if (!sg.v) return;
+        const h = plotH * sg.v / top; y -= h;
+        s += '<rect class="bar" data-i="' + i + '" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="' + Math.min(7, w / 3) + '" fill="' + sg.c + '" ' +
+          'style="transition-delay:' + (i * 0.035) + 's"/>';
+      });
+      if (tot && bs.length <= 14) s += '<text x="' + (x + w / 2) + '" y="' + (y - 7) + '" text-anchor="middle" font-size="11" font-weight="700" fill="' + css('--fg') + '">' + opts.top(tot) + '</text>';
+      const isToday = b.isDay && b.key === dayKey(new Date());
+      const show = bs.length <= 14 || i % Math.ceil(bs.length / 15) === 0 || isToday;
+      if (show) {
+        s += '<text x="' + (x + w / 2) + '" y="' + (H - padB + 16) + '" text-anchor="middle" font-size="11" ' + (isToday ? 'font-weight="700" fill="' + css('--acc') + '"' : 'fill="' + css('--mut') + '"') + '>' + b.label + '</text>';
+        if (b.label2) s += '<text x="' + (x + w / 2) + '" y="' + (H - padB + 30) + '" text-anchor="middle" font-size="10" fill="' + css('--mut') + '">' + b.label2 + '</text>';
+      }
+      // прозрачная зона для клика по всему столбцу
+      s += '<rect class="hit" data-i="' + i + '" x="' + (padL + i * bw) + '" y="' + padT + '" width="' + bw + '" height="' + plotH + '" fill="transparent" style="cursor:pointer"/>';
+    });
+    s += '</svg>';
+    el.innerHTML = s;
+    el.querySelectorAll('.hit').forEach((r) => {
+      const b = bs[+r.dataset.i];
+      r.onmousemove = (e) => showTip(e, opts.tip(b));
+      r.onmouseleave = hideTip;
+      r.onclick = () => { hideTip(); (opts.click || openBucket)(b); };
+    });
+    if (document.body.classList.contains('calm')) el.classList.add('grown');
+    else requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('grown')));
+  }
+
+  // ---------- кольцевая диаграмма ----------
+  function donut(by, rc) {
+    const tot = sumBy(by), R = 70, C = 2 * Math.PI * R;
+    let off = 0, s = '<svg width="190" height="190" viewBox="0 0 190 190"><circle cx="95" cy="95" r="' + R + '" fill="none" stroke="' + css('--line') + '" stroke-width="24"/>';
+    GROUPS.forEach((g, i) => {
+      const v = by[g.price] || 0, len = tot ? C * v / tot : 0;
+      s += '<circle class="arc" data-p="' + g.price + '" cx="95" cy="95" r="' + R + '" fill="none" stroke="' + rc.map[g.price] + '" stroke-width="24" stroke-linecap="butt" ' +
+        'stroke-dasharray="0 ' + C + '" data-len="' + len + '" stroke-dashoffset="' + (-off) + '" transform="rotate(-90 95 95)" style="transition-delay:' + (i * .2) + 's"/>';
+      off += len;
+    });
+    s += '<text x="95" y="92" text-anchor="middle" font-size="30" font-weight="800" fill="' + css('--fg') + '" id="dnum">0</text>' +
+      '<text x="95" y="114" text-anchor="middle" font-size="12" fill="' + css('--mut') + '">' + plural(tot, 'ставка', 'ставки', 'ставок') + '</text></svg>';
+    $('donut').innerHTML = s;
+    countUp($('dnum'), tot, (v) => String(Math.round(v)));
+    const draw = () => $('donut').querySelectorAll('.arc').forEach((a) => a.setAttribute('stroke-dasharray', a.dataset.len + ' ' + C));
+    if (document.body.classList.contains('calm')) draw(); else requestAnimationFrame(() => requestAnimationFrame(draw));
+    $('donut').querySelectorAll('.arc').forEach((a) => {
+      const g = GROUPS.find((x) => x.price === a.dataset.p);
+      a.onmousemove = (e) => showTip(e, '<b>' + g.label + '</b><br>' + bids(by[g.price] || 0) + ' · ' + rub((by[g.price] || 0) * g.val));
+      a.onmouseleave = hideTip;
+      a.onclick = () => { hideTip(); openGroup(g); };
+    });
+    $('legend').innerHTML = [...GROUPS].sort((a, b) => (by[b.price] || 0) - (by[a.price] || 0)).map((g) => {
+      const v = by[g.price] || 0;
+      return '<div class="lg" data-p="' + g.price + '"><span class="sw" style="background:' + rc.map[g.price] + ';color:' + rc.map[g.price] + '"></span>' +
+        '<div><b>' + g.label + '</b><div style="color:var(--mut);font-size:12px">' + bids(v) + ' · ' + (tot ? Math.round(v * 100 / tot) : 0) + '% · ' + rub(v * g.val) + '</div></div>' +
+        '<span class="rank" style="white-space:nowrap;padding:3px 9px;border-radius:999px;border:1px solid ' + rc.map[g.price] + ';color:' + rc.map[g.price] + '">' + (rc.rank[g.price] ? rc.rank[g.price] + '-е место' : 'нет') + '</span></div>';
+    }).join('');
+    $('legend').querySelectorAll('.lg').forEach((el) => { el.onclick = () => openGroup(GROUPS.find((g) => g.price === el.dataset.p)); });
+  }
+
+  // ---------- тепловая карта ----------
+  function heat(bs) {
+    const M = Array.from({ length: 7 }, () => Array(24).fill(0));
+    bs.forEach((b) => b.days.forEach((k) => { const e = (D.daily || {})[k]; if (!e || !e.h) return; const wd = parseKey(k).getDay(); e.h.forEach((v, h) => { M[wd][h] += v; }); }));
+    const max = Math.max(1, ...M.flat());
+    const order = [1, 2, 3, 4, 5, 6, 0];
+    let s = '<div class="hm"><div></div>' + Array.from({ length: 24 }, (_, h) => '<div style="text-align:center">' + (h % 3 === 0 ? h : '') + '</div>').join('');
+    order.forEach((wd) => {
+      s += '<div style="align-self:center">' + WD[wd] + '</div>';
+      for (let h = 0; h < 24; h++) {
+        const v = M[wd][h], a = v ? 0.18 + 0.82 * v / max : 0;
+        s += '<div class="c" data-wd="' + wd + '" data-h="' + h + '" data-v="' + v + '" style="' + (v ? 'background:rgba(100,210,255,' + a.toFixed(2) + ')' : '') + '"></div>';
+      }
+    });
+    $('heat').innerHTML = s + '</div>';
+    $('heat').querySelectorAll('.c').forEach((c) => {
+      c.onmousemove = (e) => showTip(e, '<b>' + WDF[+c.dataset.wd] + ', ' + c.dataset.h + ':00–' + c.dataset.h + ':59</b><br>' + bids(+c.dataset.v));
+      c.onmouseleave = hideTip;
+    });
+  }
+
+  // ---------- последние ставки ----------
+  function lastList(bs) {
+    const set = new Set(bs.flatMap((b) => b.days));
+    const h = (D.history || []).filter((x) => set.has(dayKey(new Date(x.t))));
+    $('lastSub').textContent = h.length ? 'Последние ' + h.length + ' из сохранённой истории' : '';
+    const rc = rankColors(totalBy(bs));
+    $('last').innerHTML = h.length ? h.map((x) => {
+      const d = new Date(x.t);
+      return '<div class="row"><span style="color:var(--mut);min-width:92px">' + z(d.getDate()) + '.' + z(d.getMonth() + 1) + ' ' + z(d.getHours()) + ':' + z(d.getMinutes()) + '</span>' +
+        '<span class="chip" style="background:' + (rc.map[x.price] || 'var(--n)') + '">' + esc(x.price) + ' ₽</span>' +
+        '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(x.type) + ' · ' +
+        (x.href ? '<a href="' + esc(x.href) + '" target="_blank">' + esc(x.title || 'заказ') + '</a>' : esc(x.title)) + '</span></div>';
+    }).join('') : '<div class="empty">Ставок за период в истории нет</div>';
+  }
+
+  // ---------- панель подробностей ----------
+  const drawer = $('drawer');
+  $('dx').onclick = () => drawer.classList.remove('open');
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') drawer.classList.remove('open'); });
+  function openDrawer(html) { $('dbody').innerHTML = html; drawer.classList.add('open'); }
+  const statRow = (a, b) => '<div class="stat"><span>' + a + '</span><b>' + b + '</b></div>';
+  function groupRows(by) {
+    const rc = rankColors(by);
+    return GROUPS.map((g) => '<div class="stat"><span><span class="sw" style="display:inline-block;margin-right:8px;vertical-align:-1px;background:' + rc.map[g.price] + ';color:' + rc.map[g.price] + '"></span>' +
+      g.label + '</span><b>' + (by[g.price] || 0) + ' · ' + rub((by[g.price] || 0) * g.val) + '</b></div>').join('');
+  }
+  function miniHours(h) {
+    const max = Math.max(1, ...h);
+    return '<div style="display:flex;align-items:flex-end;gap:2px;height:80px;margin:8px 0 2px">' + h.map((v, i) =>
+      '<div title="' + i + ':00 – ' + v + '" style="flex:1;height:' + Math.max(2, v * 100 / max) + '%;border-radius:3px 3px 0 0;background:' + (v ? css('--acc') : css('--line')) + '"></div>').join('') +
+      '</div><div style="display:flex;justify-content:space-between;color:var(--mut);font-size:10px"><span>0</span><span>6</span><span>12</span><span>18</span><span>23</span></div>';
+  }
+  function openBucket(b) {
+    const n = sumBy(b.by), m = money(b.by);
+    const busiest = b.h.indexOf(Math.max(...b.h));
+    let html = '<h3>' + (b.isDay ? b.full.charAt(0).toUpperCase() + b.full.slice(1) : b.full.charAt(0).toUpperCase() + b.full.slice(1)) + '</h3>' +
+      '<div style="color:var(--mut);margin-bottom:14px">' + (b.isDay ? 'подробности дня' : 'подробности месяца') + '</div>' +
+      '<div style="font-size:34px;font-weight:800;margin-bottom:2px">' + rub(m) + '</div><div style="color:var(--mut);margin-bottom:12px">' + bids(n) + '</div>' +
+      groupRows(b.by) +
+      (n ? statRow('Средняя цена ставки', rub(m / n)) : '') +
+      statRow('Сообщений от заказчиков', b.msg || 0) +
+      (n && Math.max(...b.h) ? statRow('Самый активный час', busiest + ':00–' + busiest + ':59') : '');
+    if (!b.isDay && b.days.length) {
+      const best = b.days.map((k) => [k, sumBy(((D.daily || {})[k] || {}).by || {})]).sort((a, c) => c[1] - a[1])[0];
+      html += statRow('Дней со ставками', b.days.filter((k) => sumBy(((D.daily || {})[k] || {}).by || {})).length) +
+        statRow('Лучший день', best[1] ? (parseKey(best[0]).toLocaleDateString('ru-RU') + ' – ' + bids(best[1])) : '—');
+    }
+    html += '<div style="margin-top:16px;font-weight:700">По часам</div>' + miniHours(b.h);
+    const hist = (D.history || []).filter((x) => b.days.includes(dayKey(new Date(x.t))));
+    if (hist.length) {
+      html += '<div style="margin-top:16px;font-weight:700">Ставки из истории</div>' + hist.slice(0, 30).map((x) => {
+        const d = new Date(x.t);
+        return '<div class="row"><span style="color:var(--mut)">' + z(d.getHours()) + ':' + z(d.getMinutes()) + '</span><span style="flex:1">' + esc(x.type) +
+          '<br>' + (x.href ? '<a href="' + esc(x.href) + '" target="_blank">' + esc((x.title || 'заказ').slice(0, 60)) + '</a>' : esc((x.title || '').slice(0, 60))) + '</span><b>' + esc(x.price) + '</b></div>';
+      }).join('');
+    }
+    openDrawer(html);
+  }
+  function openGroup(g) {
+    const bs = buckets(period), by = totalBy(bs), v = by[g.price] || 0, tot = sumBy(by);
+    const rc = rankColors(by);
+    const prev = totalBy(buckets(period, 1))[g.price] || 0;
+    const best = bs.map((b) => [b, b.by[g.price] || 0]).sort((a, c) => c[1] - a[1])[0];
+    const max = Math.max(1, ...bs.map((b) => b.by[g.price] || 0));
+    const spark = '<div style="display:flex;align-items:flex-end;gap:2px;height:70px;margin:8px 0">' + bs.map((b) =>
+      '<div title="' + b.full + ': ' + (b.by[g.price] || 0) + '" style="flex:1;height:' + Math.max(2, (b.by[g.price] || 0) * 100 / max) + '%;border-radius:3px 3px 0 0;background:' + rc.map[g.price] + '"></div>').join('') + '</div>';
+    openDrawer('<h3>' + g.label + '</h3><div style="color:var(--mut);margin-bottom:14px">шаблон ' + g.price + ' ₽ · ' + periodName[period] + '</div>' +
+      '<div style="font-size:34px;font-weight:800;color:' + rc.map[g.price] + '">' + bids(v) + '</div>' +
+      '<div style="color:var(--mut);margin-bottom:12px">' + rub(v * g.val) + '</div>' +
+      statRow('Доля от всех ставок', (tot ? Math.round(v * 100 / tot) : 0) + '%') +
+      statRow('Место среди типов работ', rc.rank[g.price] ? rc.rank[g.price] + '-е' : '—') +
+      (period !== 'all' ? statRow('Прошлый такой же период', bids(prev) + (prev ? ' (' + (v >= prev ? '+' : '') + Math.round((v - prev) * 100 / prev) + '%)' : '')) : '') +
+      statRow('Лучший ' + (bs[0] && bs[0].isDay ? 'день' : 'месяц'), best && best[1] ? best[0].full + ' – ' + best[1] : '—') +
+      '<div style="margin-top:16px;font-weight:700">Динамика</div>' + spark);
+  }
+
+  // ---------- плитки ----------
+  function kpis(bs) {
+    const by = totalBy(bs), n = sumBy(by), m = money(by);
+    const pb = totalBy(buckets(period, 1)), pn = sumBy(pb), pm = money(pb);
+    const tk = dayKey(new Date()), te = ((D.daily || {})[tk] || {}).by || {};
+    const daysCount = bs.reduce((a, b) => a + (b.isDay ? 1 : b.days.length || 0), 0) || 1;
+    const best = [...bs].sort((a, b) => money(b.by) - money(a.by))[0];
+    const delta = (a, b) => {
+      if (period === 'all' || !b) return '<span>&nbsp;</span>';
+      const pct = Math.round((a - b) * 100 / b);
+      if (!pct) return '<span>≈ как в прошлом периоде</span>';
+      return '<span class="' + (pct > 0 ? 'up' : 'down') + '">' + (pct > 0 ? '▲ ' : '▼ ') + Math.abs(pct) + '%</span> к прошлому периоду';
+    };
+    const items = [
+      { l: 'Ставок ' + periodName[period], v: n, f: (x) => String(Math.round(x)), d: delta(n, pn), on: () => openDrawer('<h3>Ставки ' + periodName[period] + '</h3>' + statRow('Всего', bids(n)) + groupRows(by)) },
+      { l: 'Сумма ' + periodName[period], v: m, f: rub, d: delta(m, pm), on: () => openDrawer('<h3>Сумма ' + periodName[period] + '</h3><div style="font-size:30px;font-weight:800;margin:6px 0 12px">' + rub(m) + '</div>' + groupRows(by)) },
+      { l: 'В среднем за день', v: m / daysCount, f: rub, d: '<span>' + (n / daysCount).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' ставки в день</span>', on: null },
+      { l: 'Лучший ' + (bs[0] && bs[0].isDay ? 'день' : 'месяц'), v: best ? money(best.by) : 0, f: rub, d: '<span>' + (best && money(best.by) ? best.full : '—') + '</span>', on: () => best && openBucket(best) },
+      { l: 'Сегодня', v: money(te), f: rub, d: '<span>' + bids(sumBy(te)) + '</span>', on: () => openBucket(dayBucket(new Date())) },
+    ];
+    $('kpis').innerHTML = items.map((k, i) => '<div class="kpi glass rise" style="animation-delay:' + (0.04 + i * 0.05) + 's"><div class="l">' + k.l +
+      '</div><div class="v">0</div><div class="d">' + k.d + '</div></div>').join('');
+    [...$('kpis').children].forEach((el, i) => {
+      countUp(el.querySelector('.v'), items[i].v, items[i].f);
+      if (items[i].on) el.onclick = items[i].on; else el.style.cursor = 'default';
+    });
+  }
+
+  // ---------- настроение дня ----------
+  // Сравниваем сегодняшние ставки с тем, сколько обычно бывает к этому часу (по последним 30 дням со ставками).
+  function dayStats() {
+    const today = new Date(), tk = dayKey(today), hr = today.getHours();
+    const past = [];
+    for (let i = 1; i <= 30; i++) { const d = new Date(); d.setDate(d.getDate() - i); const e = (D.daily || {})[dayKey(d)]; if (e && sumBy(e.by || {})) past.push(e); }
+    const te = (D.daily || {})[tk] || { by: {}, h: Array(24).fill(0) };
+    const n = sumBy(te.by || {}), m = money(te.by || {});
+    const H = Array(24).fill(0); past.forEach((e) => (e.h || []).forEach((v, i) => { H[i] += v; }));
+    const hTot = H.reduce((a, b) => a + b, 0);
+    const frac = hTot ? Math.max(0.12, H.slice(0, hr + 1).reduce((a, b) => a + b, 0) / hTot) : Math.max(0.12, (hr + 1) / 24);
+    const avg = past.length ? past.reduce((a, e) => a + sumBy(e.by || {}), 0) / past.length : 0;
+    const avgM = past.length ? past.reduce((a, e) => a + money(e.by || {}), 0) / past.length : 0;
+    const expect = avg * frac;
+    const ratio = expect ? n / expect : (n ? 1 : 0);
+    let mood = 'none';
+    if (past.length >= 3) mood = ratio >= 0.95 ? 'good' : (ratio >= 0.6 || expect < 1.5) ? 'mid' : 'bad';
+    else if (n) mood = 'good';
+    return { n, m, te, past, H, hTot, avg, avgM, expect, ratio, mood, hr };
+  }
+  const MOOD = {
+    good: { chip: 'Хороший день', color: 'var(--g)', blobs: ['#30d158', '#2dd4bf', '#64d2ff'], layer: 'mGood' },
+    mid: { chip: 'Обычный день', color: 'var(--o)', blobs: ['#ffb020', '#ff8a3d', '#ffd60a'], layer: 'mMid' },
+    bad: { chip: 'Спокойный день', color: 'var(--r)', blobs: ['#ff5a64', '#8e8ea0', '#b06ab3'], layer: 'mBad' },
+    none: { chip: 'Мало данных', color: 'var(--mut)', blobs: ['#5e5ce6', '#30d1a8', '#ff6b9a'], layer: '' },
+  };
+  function applyMood(ds) {
+    const M = MOOD[ds.mood];
+    ['mGood', 'mMid', 'mBad'].forEach((id) => $(id).classList.toggle('on', id === M.layer));
+    const st = document.body.style;
+    st.setProperty('--m1', M.blobs[0]); st.setProperty('--m2', M.blobs[1]); st.setProperty('--m3', M.blobs[2]);
+    $('moodchip').innerHTML = '<span style="color:' + M.color + '">●</span> ' + M.chip;
+    $('moodchip').title = ds.expect ? 'Сегодня ' + bids(ds.n) + ', обычно к этому часу около ' + Math.round(ds.expect) : '';
+  }
+
+  // ---------- советы (лампочка) ----------
+  function insights(ds) {
+    const out = [];
+    const pct = (a, b) => Math.round((a - b) * 100 / b);
+    // 1. темп дня
+    if (ds.past.length >= 3) {
+      const e = Math.max(1, Math.round(ds.expect));
+      const lead = ds.ratio >= 2 ? 'ставок в ' + ds.ratio.toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' раза больше обычного'
+        : ds.ratio >= 1.15 ? 'впереди на ' + Math.round((ds.ratio - 1) * 100) + '%' : 'идёте точно в привычном темпе';
+      if (ds.expect < 1.5 && ds.mood !== 'good') out.push({ t: 'День только начинается', x: 'Сейчас ' + bids(ds.n) + '. В это время у вас обычно ещё тихо, основная активность впереди.' });
+      else if (ds.mood === 'good') out.push({ t: 'День идёт отлично', x: 'Сегодня уже ' + bids(ds.n) + ' на ' + rub(ds.m) + '. Обычно к этому часу бывает около ' + e + ', так что ' + lead + '. Так держать!' });
+      else if (ds.mood === 'mid') out.push({ t: 'Обычный темп', x: 'Сегодня ' + bids(ds.n) + ' на ' + rub(ds.m) + ', а обычно к этому часу около ' + e + '. Немного тише привычного, но день ещё не закончился.' });
+      else out.push({ t: 'Спокойный день', x: 'Пока ' + bids(ds.n) + ' при обычных ' + e + ' к этому часу. Не расстраивайтесь: такие дни бывают у всех, а заказы на сайте часто приходят волнами.' });
+    } else out.push({ t: 'Копим статистику', x: 'Данных пока мало: нужно хотя бы три дня со ставками, чтобы сравнивать дни между собой. Сегодня ' + bids(ds.n) + '.' });
+    // 2. часы пик
+    if (ds.hTot >= 10) {
+      let best = 0, bi = 0;
+      for (let i = 0; i < 22; i++) { const v = ds.H[i] + ds.H[i + 1] + ds.H[i + 2]; if (v > best) { best = v; bi = i; } }
+      const ahead = ds.hr < bi;
+      out.push({ t: 'Часы пик', x: 'Больше всего ставок у вас обычно с ' + bi + ':00 до ' + (bi + 3) + ':00 – это ' + Math.round(best * 100 / ds.hTot) + '% всех ставок. ' +
+        (ahead ? 'Самое активное время ещё впереди, держите автоставки включёнными.' : ds.hr <= bi + 2 ? 'Сейчас как раз самое горячее время.' : 'Пик на сегодня уже прошёл.') });
+    }
+    // 3. неделя к неделе
+    const w = totalBy(dayRange(7).map(dayBucket)), pw = totalBy(dayRange(14).slice(0, 7).map(dayBucket));
+    const wn = sumBy(w), pn = sumBy(pw);
+    if (pn) {
+      const d = pct(wn, pn);
+      out.push({ t: 'Неделя', x: 'За 7 дней – ' + bids(wn) + ' на ' + rub(money(w)) + '. ' + (d > 5 ? 'Это на ' + d + '% больше, чем неделей раньше. Динамика положительная.' : d < -5 ? 'Это на ' + Math.abs(d) + '% меньше, чем неделей раньше. Возможно, на сайте сезонное затишье.' : 'Почти столько же, сколько неделей раньше: всё стабильно.') });
+    }
+    // 4. лидер
+    const tRc = rankColors(ds.te.by || {}), wRc = rankColors(w);
+    const lead = (rc) => GROUPS.find((g) => rc.rank[g.price] === 1);
+    const tl = lead(tRc), wl = lead(wRc);
+    if (tl && wl) out.push({ t: 'Кто лидирует', x: 'Сегодня больше всего ставок на «' + tl.label.toLowerCase() + '»' + (tl === wl ? ', и за неделю они тоже впереди.' : ', а за неделю лидируют «' + wl.label.toLowerCase() + '».') });
+    // 5. дипломы в деньгах
+    const dn = w['10 000'] || 0;
+    if (wn && money(w)) {
+      const share = Math.round(dn * 10000 * 100 / money(w));
+      out.push({ t: 'Дорогие заказы', x: dn ? 'Дипломы – всего ' + Math.round(dn * 100 / wn) + '% ставок за неделю, но ' + share + '% суммы. Каждый такой заказ весит как десять статей.' : 'За неделю не было ставок на дипломы и ВКР. Это самые дорогие заказы: проверьте, что они отмечены в фильтре поиска.' });
+    }
+    // 6. лучший день недели
+    const byWd = Array(7).fill(0), cWd = Array(7).fill(0);
+    for (let i = 1; i <= 90; i++) { const d = new Date(); d.setDate(d.getDate() - i); const e = (D.daily || {})[dayKey(d)]; if (e && sumBy(e.by || {})) { byWd[d.getDay()] += sumBy(e.by); cWd[d.getDay()]++; } }
+    const avgWd = byWd.map((v, i) => (cWd[i] ? v / cWd[i] : 0));
+    const bw = avgWd.indexOf(Math.max(...avgWd));
+    if (cWd.filter(Boolean).length >= 4 && avgWd[bw]) out.push({ t: 'Лучший день недели', x: 'В среднем больше всего ставок у вас ' + ['по воскресеньям', 'по понедельникам', 'по вторникам', 'по средам', 'по четвергам', 'по пятницам', 'по субботам'][bw] + ': около ' + Math.round(avgWd[bw]) + ' за день.' + (bw === new Date().getDay() ? ' Сегодня как раз он!' : '') });
+    // 7. рекорд и серия
+    let rec = null;
+    Object.entries(D.daily || {}).forEach(([k, e]) => { const v = sumBy(e.by || {}); if (!rec || v > rec[1]) rec = [k, v, money(e.by || {})]; });
+    if (rec && rec[1]) out.push({ t: 'Рекорд', x: rec[0] === dayKey(new Date()) ? 'Сегодня – ваш рекордный день: ' + bids(rec[1]) + ' на ' + rub(rec[2]) + '! 🎉' : 'Ваш рекорд – ' + parseKey(rec[0]).toLocaleDateString('ru-RU') + ': ' + bids(rec[1]) + ' на ' + rub(rec[2]) + '. До него сегодня осталось ' + bids(Math.max(0, rec[1] - ds.n)) + '.' });
+    const sea = msgSeason();
+    if (sea.pw >= 3) {
+      const d = Math.round((sea.w - sea.pw) * 100 / sea.pw);
+      out.push({ t: 'Сообщения', x: 'За неделю вам написали ' + msgWord(sea.w) + (d >= 15 ? ' – на ' + d + '% больше, чем неделей раньше. Спрос растёт, отвечайте заказчикам побыстрее.' : d <= -15 ? ' – на ' + Math.abs(d) + '% меньше, чем неделей раньше. Похоже на затишье: самое время брать больше заказов в работу.' : ', примерно как неделей раньше.') });
+    } else if (sea.w) out.push({ t: 'Сообщения', x: 'За неделю вам написали ' + msgWord(sea.w) + '. Чем больше накопится данных, тем точнее будут выводы о сезоне.' });
+    if (D.pricing && D.pricing.groups) {
+      const best = null;
+      const ch = D.pricing.groups.filter((g) => g.act === 'up' || g.act === 'down');
+      if (ch.length) out.push({ t: 'Совет по ценам', x: ch.map((g) => '«' + g.label + '»: ' + (g.act === 'up' ? 'можно поднять' : 'стоит снизить') + ' (обычно выбирают за ' + (g.med ? rub(g.med) : '—') + ').').join(' ') + ' Подробности – в разделе «Цены и выбор заказчиков».' });
+      if (best) out.push({ t: 'Самые выгодные ставки', x: 'Больше всего денег на одну ставку приносят «' + best.label.toLowerCase() + '»: около ' + rub(best.perBid * 100) + ' на каждые 100 ставок.' });
+      if (D.pricing.exec && D.pricing.exec.list) { const w = D.pricing.exec.list.filter((o) => o.status === 'execution'); out.push({ t: 'Загрузка', x: 'Сейчас на выполнении ' + w.length + ' ' + plural(w.length, 'заказ', 'заказа', 'заказов') + ' на ' + rub(w.reduce((a, o) => a + o.price, 0)) + (D.pricing.pending ? ', ещё ' + D.pricing.pending + ' ставок ждут решения заказчиков.' : '.') }); }
+    }
+    if (D.income && D.income.days) {
+      const a = incDays(0, 30), b = incDays(30, 30);
+      if (!a.some((x) => x.miss) && !b.some((x) => x.miss)) {
+        const s1 = sumV(a), s2 = sumV(b);
+        out.push({ t: 'Доход', x: 'За последние 30 дней заработано ' + rub(s1) + (s2 ? (s1 >= s2 ? ', на ' + Math.round((s1 - s2) * 100 / s2) + '% больше' : ', на ' + Math.round((s2 - s1) * 100 / s2) + '% меньше') + ', чем за 30 дней до этого.' : '.') });
+      }
+    }
+    let streak = 0;
+    for (let i = ds.n ? 0 : 1; i < 400; i++) { const d = new Date(); d.setDate(d.getDate() - i); const e = (D.daily || {})[dayKey(d)]; if (e && sumBy(e.by || {})) streak++; else break; }
+    if (streak >= 3) out.push({ t: 'Серия', x: 'Уже ' + streak + ' ' + plural(streak, 'день', 'дня', 'дней') + ' подряд со ставками. Отличная стабильность!' });
+    return out;
+  }
+
+  let ideas = [], ideaI = 0, ideaTimer = null;
+  function showIdea(i) {
+    if (!ideas.length) return;
+    ideaI = (i + ideas.length) % ideas.length;
+    const tx = $('ideaTxt');
+    tx.style.opacity = 0;
+    setTimeout(() => {
+      $('ideaTitle').textContent = ideas[ideaI].t;
+      tx.textContent = ideas[ideaI].x;
+      tx.style.opacity = 1;
+    }, 180);
+    $('ideaDots').innerHTML = ideas.map((_, k) => '<i class="' + (k === ideaI ? 'a' : '') + '"></i>').join('');
+  }
+  function openIdeas(auto) {
+    $('idea').classList.add('on');
+    $('bulb').classList.remove('glow');
+    showIdea(auto ? 0 : ideaI);
+    clearInterval(ideaTimer);
+    ideaTimer = setInterval(() => showIdea(ideaI + 1), 9000);
+  }
+  function closeIdeas() { $('idea').classList.remove('on'); clearInterval(ideaTimer); }
+  $('bulb').onclick = () => ($('idea').classList.contains('on') ? closeIdeas() : openIdeas(false));
+  $('ideaX').onclick = closeIdeas;
+  $('ideaNext').onclick = () => { showIdea(ideaI + 1); clearInterval(ideaTimer); ideaTimer = setInterval(() => showIdea(ideaI + 1), 9000); };
+  $('ideaPrev').onclick = () => { showIdea(ideaI - 1); clearInterval(ideaTimer); ideaTimer = setInterval(() => showIdea(ideaI + 1), 9000); };
+
+  // ---------- сообщения ----------
+  const msgWord = (n) => n + ' ' + plural(n, 'сообщение', 'сообщения', 'сообщений');
+  function msgSeason() {
+    // сравниваем последние 30 дней с предыдущими 30 — чтобы понять, сезон или затишье
+    const sum = (from, to) => { let n = 0; for (let i = from; i < to; i++) { const d = new Date(); d.setDate(d.getDate() - i); n += ((((D.msgs || {}).daily || {})[dayKey(d)]) || {}).n || 0; } return n; };
+    const a = sum(0, 30), b = sum(30, 60), w = sum(0, 7), pw = sum(7, 14);
+    return { a, b, w, pw };
+  }
+  function msgSection(bs) {
+    const has = Object.keys(((D.msgs || {}).daily) || {}).length;
+    const tot = bs.reduce((x, b) => x + b.msg, 0);
+    const prev = buckets(period, 1).reduce((x, b) => x + b.msg, 0);
+    const daysN = bs.reduce((a, b) => a + (b.isDay ? 1 : b.days.length || 0), 0) || 1;
+    const H = Array(24).fill(0); bs.forEach((b) => b.mh.forEach((v, i) => { H[i] += v; }));
+    const peak = H.indexOf(Math.max(...H));
+    const nb = sumBy(totalBy(bs));
+    const today = dayBucket(new Date()).msg;
+    $('msgSub').textContent = (period === 'week' || period === 'month' ? 'По дням ' : 'По месяцам ') + periodName[period] +
+      ' · считаются новые уведомления на колокольчике · нажмите на столбец';
+    const sea = msgSeason();
+    let season = '';
+    if (sea.b >= 5) {
+      const d = Math.round((sea.a - sea.b) * 100 / sea.b);
+      season = d >= 20 ? '📈 За последние 30 дней пишут на ' + d + '% чаще, чем месяцем раньше – похоже на начало сезона.'
+        : d <= -20 ? '📉 За последние 30 дней пишут на ' + Math.abs(d) + '% реже, чем месяцем раньше – похоже на затишье.'
+        : '➖ Последние 30 дней пишут примерно так же, как месяцем раньше: спрос стабильный.';
+    } else season = 'Сезонность станет видна, когда наберётся хотя бы два месяца наблюдений.';
+    const delta = period === 'all' || !prev ? '' : ' <span class="' + (tot >= prev ? 'up' : 'down') + '" style="font-size:12px">' + (tot >= prev ? '▲' : '▼') + Math.abs(Math.round((tot - prev) * 100 / prev)) + '%</span>';
+    $('msgStats').innerHTML = has ? '<div class="ms">' +
+      '<div class="w"><div class="l">Сообщений ' + periodName[period] + '</div><div class="v">' + tot + delta + '</div></div>' +
+      '<div><div class="l">Сегодня</div><div class="v">' + today + '</div></div>' +
+      '<div><div class="l">В среднем за день</div><div class="v">' + (tot / daysN).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + '</div></div>' +
+      '<div><div class="l">Чаще всего пишут</div><div class="v" style="font-size:14px;white-space:nowrap">' + (Math.max(...H) ? peak + ':00–' + (peak + 1) + ':00' : '—') + '</div></div>' +
+      '<div><div class="l">На 10 ставок</div><div class="v">' + (nb ? (tot * 10 / nb).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) : '—') + '</div></div>' +
+      '</div><div class="season">' + season + '</div>'
+      : '<div class="empty" style="padding:10px 0">Сообщений пока нет. Учёт ведёт скрипт уведомлений (колокольчик) начиная с версии 2.9.</div>';
+    const msgColor = css('--acc');
+    barChart($('msgs'), bs, (b) => b.msg, {
+      h: 170, int: true, color: msgColor, axis: (v) => String(Math.round(v)), top: (v) => String(v),
+      tip: (b) => '<b>' + b.full + '</b><br>' + msgWord(b.msg) + ' · ' + bids(sumBy(b.by)),
+      click: (b) => openMsgs(b),
+    });
+    const sv = $('msgs').querySelector('svg');
+    sv.insertAdjacentHTML('afterbegin', '<defs><linearGradient id="msgG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bf5af2"/><stop offset="1" stop-color="#5e5ce6"/></linearGradient></defs>');
+    sv.querySelectorAll('.bar').forEach((r) => r.setAttribute('fill', 'url(#msgG)'));
+  }
+  function openMsgs(b) {
+    const n = sumBy(b.by);
+    const peak = b.mh.indexOf(Math.max(...b.mh));
+    const log = ((D.msgs || {}).log || []).filter((x) => b.days.includes(dayKey(new Date(x.t))));
+    let html = '<h3>' + b.full.charAt(0).toUpperCase() + b.full.slice(1) + '</h3><div style="color:var(--mut);margin-bottom:14px">сообщения от заказчиков</div>' +
+      '<div style="font-size:34px;font-weight:800;margin-bottom:12px">' + msgWord(b.msg) + '</div>' +
+      statRow('Ставок за это время', bids(n)) +
+      statRow('Сообщений на 10 ставок', n ? (b.msg * 10 / n).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) : '—') +
+      (Math.max(...b.mh) ? statRow('Чаще всего писали', peak + ':00–' + (peak + 1) + ':00') : '') +
+      '<div style="margin-top:16px;font-weight:700">По часам</div>' + miniHours(b.mh);
+    if (log.length) html += '<div style="margin-top:16px;font-weight:700">Когда приходили</div>' + log.slice(0, 40).map((x) => {
+      const d = new Date(x.t);
+      return '<div class="row"><span style="color:var(--mut)">' + z(d.getDate()) + '.' + z(d.getMonth() + 1) + ' ' + z(d.getHours()) + ':' + z(d.getMinutes()) + '</span><span style="flex:1">+' + msgWord(x.n) + '</span></div>';
+    }).join('');
+    openDrawer(html);
+  }
+
+  // ---------- цены и выбор заказчиков ----------
+  const ACT = { up: ['b-up', '▲ Поднять'], down: ['b-down', '▼ Снизить'], keep: ['b-keep', '● Оставить'], wait: ['b-wait', '… Мало данных'] };
+  const pct = (x) => (x * 100).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + '%';
+  function pricingSection() {
+    const P = D.pricing;
+    if (!P) { $('prSub').textContent = ''; $('prGroups').innerHTML = '<div class="empty">Данных о ваших заказах пока нет: скрипт автоставок загрузит их сам в течение нескольких минут.</div>'; $('prExec').innerHTML = ''; return; }
+    $('prSub').textContent = 'За сколько вас выбирают заказчики и что делать с ценой · ' +
+      (P.full ? 'история заказов загружена' : 'история загружается: ' + Math.max(0, P.syncPage - 1) + ' из ' + (P.syncLast || '…') + ' страниц') +
+      (P.scanAt ? ' · обновлено ' + new Date(P.scanAt).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '') + ' · нажмите на карточку';
+    const ex = P.exec && P.exec.list ? P.exec.list : null;
+    const work = ex ? ex.filter((o) => o.status === 'execution') : [];
+    const gar = ex ? ex.filter((o) => o.status !== 'execution') : [];
+    const stName = { execution: 'на выполнении', guarantee: 'на гарантии', rework: 'на доработке' };
+    $('prExec').innerHTML = ex ? '<div class="exec"><span class="tot">' + work.length + '</span><span>на выполнении на <b>' + rub(work.reduce((a, o) => a + o.price, 0)) + '</b></span>' +
+      '<span style="color:var(--mut)">· на гарантии и доработке: ' + gar.length + (P.pending !== null ? ' · ставок ждут решения: ' + P.pending : '') + ' · всего выполнено заказов: ' + P.wonTotal + '</span></div>' : '';
+    $('prExec').style.cursor = ex ? 'pointer' : '';
+    $('prExec').onclick = ex ? () => openDrawer('<h3>Заказы в работе</h3><div style="color:var(--mut);margin-bottom:12px">на выполнении ' + work.length + ' на ' + rub(work.reduce((a, o) => a + o.price, 0)) + '</div>' +
+      ex.map((o) => '<div class="row"><span style="flex:1">' + esc(o.type) + ' <span style="color:var(--mut)">· ' + (stName[o.status] || o.status) + '</span><br><span style="color:var(--mut)">' + esc(o.title) + '</span>' +
+        (o.deadline ? '<br><span style="color:var(--mut);font-size:12px">срок: ' + new Date(o.deadline).toLocaleDateString('ru-RU') + ' · конкурентов было ' + o.comp + '</span>' : '') + '</span><b>' + rub(o.price) + '</b></div>').join('')) : null;
+    $('prGroups').innerHTML = P.groups.map((g, i) => '<div class="pr" data-i="' + i + '"><div class="h"><b>' + g.label + '</b><span class="badge ' + ACT[g.act][0] + '">' + ACT[g.act][1] + '</span></div>' +
+      '<div class="nums"><span>Ваша цена<b>' + rub(g.tpl) + '</b></span><span>Обычно выбирают за<b>' + (g.med ? rub(g.med) : '—') + '</b></span>' +
+      '<span>Заказов за 90 дней<b>' + g.n90 + '</b></span><span>Дороже вашей цены<b>' + (g.n90 ? Math.round(g.above * 100) + '%' : '—') + '</b></span>' +
+      '<span>Доля выбора автоставок<b>' + (g.bids >= 10 ? pct(g.conv) : '—') + '</b></span><span>Конкурентов обычно<b>' + (g.compWon ? Math.round(g.compWon) : '—') + '</b></span></div>' +
+      '<div class="why">' + esc(g.why) + '</div></div>').join('');
+    $('prGroups').querySelectorAll('.pr').forEach((el) => {
+      const g = P.groups[+el.dataset.i];
+      const mx = Math.max(1, ...g.monthly.map((m) => m[1]));
+      const pmx = Math.max(1, ...g.monthly.map((m) => m[2]));
+      const chart = '<div style="display:flex;align-items:flex-end;gap:4px;height:110px;margin:10px 0 4px">' + g.monthly.map((m) =>
+        '<div title="' + m[0] + ': ' + m[1] + ' заказов, в среднем ' + (m[2] ? m[2].toLocaleString('ru-RU') + ' ₽' : '—') + '" style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%">' +
+        '<span style="font-size:9px;color:var(--mut)">' + (m[1] || '') + '</span><div style="width:80%;height:' + Math.max(2, m[1] * 85 / mx) + '%;border-radius:3px 3px 0 0;background:' + css('--acc') + '"></div></div>').join('') + '</div>' +
+        '<div style="display:flex;gap:4px;font-size:9px;color:var(--mut)">' + g.monthly.map((m) => '<span style="flex:1;text-align:center">' + MON[+m[0].slice(5) - 1] + '</span>').join('') + '</div>' +
+        '<div style="margin-top:14px;font-weight:700">Средняя цена выбранных по месяцам</div><div style="display:flex;align-items:flex-end;gap:4px;height:80px;margin:8px 0 4px">' + g.monthly.map((m) =>
+        '<div title="' + m[0] + ': ' + (m[2] ? m[2].toLocaleString('ru-RU') + ' ₽' : '—') + '" style="flex:1;height:' + Math.max(2, m[2] * 100 / pmx) + '%;border-radius:3px 3px 0 0;background:' + (m[2] > g.tpl ? css('--g') : m[2] && m[2] < g.tpl ? css('--o') : css('--line')) + '"></div>').join('') + '</div>' +
+        '<div style="font-size:11px;color:var(--mut)">зелёный – выше вашей цены, оранжевый – ниже</div>';
+      el.onclick = () => openDrawer('<h3>' + g.label + '</h3><div style="color:var(--mut);margin-bottom:12px">ваша цена ' + rub(g.tpl) + '</div>' +
+        '<div style="margin-bottom:12px"><span class="badge ' + ACT[g.act][0] + '" style="margin:0">' + ACT[g.act][1] + '</span></div>' +
+        '<div style="line-height:1.5;margin-bottom:12px">' + esc(g.why) + '</div>' +
+        statRow('Всего ваших заказов этого типа', g.total) + statRow('За последние 90 дней', g.n90) +
+        statRow('Обычно выбирают за (медиана)', g.med ? rub(g.med) : '—') + statRow('Средняя цена за 90 дней', g.avg90 ? rub(g.avg90) : '—') +
+        statRow('Дороже вашей цены', g.n90 ? Math.round(g.above * 100) + '%' : '—') + statRow('Дешевле вашей цены', g.n90 ? Math.round(g.below * 100) + '%' : '—') +
+        statRow('Конкурентов в выбранных заказах', g.compWon ? Math.round(g.compWon) : '—') + statRow('Конкурентов в ожидающих ставках', g.compPend ? Math.round(g.compPend) : '—') +
+        statRow('Автоставок / выбрали', g.bids + ' / ' + g.wonFromBids) + statRow('Доля выбора автоставок', g.bids ? pct(g.conv) : '—') +
+        '<div style="margin-top:16px;font-weight:700">Ваши заказы по месяцам</div>' + chart);
+    });
+  }
+
+  // ---------- доход (по данным «Моей статистики» сайта) ----------
+  let incP = (() => { try { return localStorage.getItem('an-incp') || 'month'; } catch (e) { return 'month'; } })();
+  const orders = (n) => n + ' ' + plural(n, 'заказ', 'заказа', 'заказов');
+  function incDays(from, n) {          // n дней, начиная с from дней назад, от старых к новым
+    const out = [];
+    for (let i = from + n - 1; i >= from; i--) {
+      const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - i);
+      const k = dayKey(d), v = (D.income.days || {})[k];
+      out.push({ key: k, v: v ? v[0] : 0, c: v ? v[1] : 0, miss: !v, isDay: true,
+        label: n <= 14 ? z(d.getDate()) + '.' + z(d.getMonth() + 1) : String(d.getDate()), label2: n <= 7 ? WD[d.getDay()] : '',
+        full: WDF[d.getDay()] + ', ' + z(d.getDate()) + '.' + z(d.getMonth() + 1) + '.' + d.getFullYear() });
+    }
+    return out;
+  }
+  function incMonths(from, n) {
+    const out = [], now = new Date();
+    for (let i = from + n - 1; i >= from; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1), k = d.getFullYear() + '-' + z(d.getMonth() + 1), v = (D.income.months || {})[k];
+      out.push({ key: k, v: v ? v[0] : 0, c: v ? v[1] : 0, miss: !v, isDay: false, label: MON[d.getMonth()], label2: String(d.getFullYear()).slice(2), full: MONF[d.getMonth()] + ' ' + d.getFullYear() });
+    }
+    return out;
+  }
+  function incYears() {
+    const by = {};
+    Object.entries(D.income.months || {}).forEach(([k, v]) => { const y = k.slice(0, 4); by[y] = by[y] || [0, 0]; by[y][0] += v[0]; by[y][1] += v[1]; });
+    const y0 = D.income.first ? +D.income.first.slice(0, 4) : Math.min(...Object.keys(by).map(Number), new Date().getFullYear());
+    const out = [];
+    for (let y = y0; y <= new Date().getFullYear(); y++) out.push({ key: String(y), v: by[y] ? by[y][0] : 0, c: by[y] ? by[y][1] : 0, isDay: false, label: String(y), label2: '', full: y + ' год' });
+    return out;
+  }
+  const sumV = (a) => a.reduce((x, b) => x + b.v, 0), sumC = (a) => a.reduce((x, b) => x + b.c, 0);
+  function incomeSection() {
+    $('incSeg').querySelectorAll('button').forEach((b) => b.classList.toggle('a', b.dataset.p === incP));
+    const I = D.income && D.income.all ? D.income : null;   // старый формат данных просто пропускаем
+    if (!I) { $('incV').textContent = '—'; $('incD').textContent = 'Скрипт автоставок загрузит доход в течение минуты.'; $('inc').innerHTML = ''; $('incFoot').textContent = ''; return; }
+    let bs, cur, prev = null, cnt, prevName = '';
+    if (incP === 'today') { bs = incDays(0, 14); const t = bs[bs.length - 1], y = bs[bs.length - 2]; cur = t.v; cnt = t.c; prev = y.miss ? null : y.v; prevName = 'со вчерашним днём'; }
+    else if (incP === 'week' || incP === 'month') {
+      const n = incP === 'week' ? 7 : 30; bs = incDays(0, n); cur = sumV(bs); cnt = sumC(bs);
+      const p = incDays(n, n); if (!p.some((b) => b.miss)) prev = sumV(p); prevName = incP === 'week' ? 'с прошлыми 7 днями' : 'с прошлыми 30 днями';
+    } else if (incP === 'year') { bs = incMonths(0, 12); cur = sumV(bs); cnt = sumC(bs); const p = incMonths(12, 12); if (!p.some((b) => b.miss)) prev = sumV(p); prevName = 'с прошлыми 12 месяцами'; }
+    else { bs = incYears(); cur = I.all[0]; cnt = I.all[1]; }
+    const loading = incP !== 'all' && bs.some((b) => b.miss);
+    $('incV').textContent = rub(cur);
+    const dl = prev ? ' <span class="' + (cur >= prev ? 'up' : 'down') + '">' + (cur >= prev ? '▲' : '▼') + Math.abs(Math.round((cur - prev) * 100 / prev)) + '%</span> по сравнению ' + prevName : '';
+    $('incD').innerHTML = orders(cnt) + (cnt ? ' · средний чек ' + rub(cur / cnt) : '') + (dl ? '<br>' + dl : '') + (loading ? '<br>загружается…' : '');
+    const B = I.bal;
+    $('incFoot').textContent = (B ? 'На балансе ' + rub(B[0] + B[1]) + (B[1] ? ', из них ' + rub(B[1]) + ' заморожено до сдачи заказов' : '') + ' · ' : '') +
+      'за всё время ' + rub(I.all[0]) + ' · данные сайта, обновлено ' + new Date(I.at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    barChart($('inc'), bs, (b) => b.v, {
+      h: 140, color: css('--g'), axis: rubShort, top: rubShort,
+      tip: (b) => '<b>' + b.full + '</b><br>' + rub(b.v) + ' · ' + orders(b.c),
+      click: (b) => openDrawer('<h3>' + b.full + '</h3>' + statRow('Доход', rub(b.v)) + statRow('Выполнено заказов', b.c) + statRow('Средний чек', b.c ? rub(b.v / b.c) : '—')),
+    });
+    const sv = $('inc').querySelector('svg');
+    sv.insertAdjacentHTML('afterbegin', '<defs><linearGradient id="incG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#30d158"/><stop offset="1" stop-color="#0a84ff"/></linearGradient></defs>');
+    sv.querySelectorAll('.bar').forEach((r) => r.setAttribute('fill', 'url(#incG)'));
+  }
+  $('incSeg').querySelectorAll('button').forEach((b) => {
+    b.onclick = () => { incP = b.dataset.p; try { localStorage.setItem('an-incp', incP); } catch (e) {} document.body.classList.add('calm'); incomeSection(); requestAnimationFrame(() => document.body.classList.remove('calm')); };
+  });
+
+  // ---------- сборка ----------
+  function render() {
+    document.body.classList.toggle('light', D.theme === 'light');
+    const bs = buckets(period);
+    const by = totalBy(bs), rc = rankColors(by);
+    kpis(bs);
+    $('moneySub').textContent = (period === 'week' || period === 'month' ? 'По дням ' : 'По месяцам ') + periodName[period] + ' · нажмите на столбец';
+    barChart($('money'), bs, (b) => money(b.by), {
+      h: 200, color: css('--acc'), axis: rubShort, top: rubShort,
+      tip: (b) => '<b>' + b.full + '</b><br>' + rub(money(b.by)) + ' · ' + bids(sumBy(b.by)),
+    });
+    // в столбце рублей — градиент
+    const g = '<defs><linearGradient id="mg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + css('--acc') + '"/><stop offset="1" stop-color="#5e5ce6"/></linearGradient></defs>';
+    const sv = $('money').querySelector('svg'); sv.insertAdjacentHTML('afterbegin', g);
+    sv.querySelectorAll('.bar').forEach((r) => r.setAttribute('fill', 'url(#mg)'));
+    $('cntSub').textContent = 'С разбивкой по типам работ ' + periodName[period] + ' · нажмите на столбец';
+    barChart($('counts'), bs, (b) => [...GROUPS].sort((a, c) => (rc.rank[c.price] || 9) - (rc.rank[a.price] || 9)).map((gr) => ({ v: b.by[gr.price] || 0, c: rc.map[gr.price] })), {
+      h: 170, int: true, axis: (v) => String(Math.round(v)), top: (v) => String(v),
+      tip: (b) => '<b>' + b.full + '</b><br>' + GROUPS.map((gr) => gr.label + ': ' + (b.by[gr.price] || 0)).join('<br>'),
+    });
+    msgSection(bs);
+    incomeSection();
+    pricingSection();
+    donut(by, rc);
+    heat(bs);
+    lastList(bs);
+    $('upd').textContent = D.now ? 'данные от ' + new Date(D.now).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'данных пока нет';
+    const ds = dayStats();
+    applyMood(ds);
+    ideas = insights(ds);
+    if ($('idea').classList.contains('on')) showIdea(Math.min(ideaI, ideas.length - 1));
+    // переключатель периода
+    const btn = $('seg').querySelector('[data-p="' + period + '"]'), pill = $('seg').querySelector('.pill');
+    pill.style.left = btn.offsetLeft + 'px'; pill.style.width = btn.offsetWidth + 'px';
+  }
+
+  $('seg').querySelectorAll('button').forEach((b) => {
+    b.onclick = () => { period = b.dataset.p; try { localStorage.setItem('an-period', period); } catch (e) {} drawer.classList.remove('open'); render(); };
+  });
+  $('theme').onclick = () => { D.theme = D.theme === 'light' ? 'dark' : 'light'; render(); };
+  let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(render, 200); });
+
+  // ---------- связь с компьютером через ntfy ----------
+  const NTFY = 'https://ntfy.sh/';
+  const topic = () => localStorage.getItem('an-topic') || '';
+  const toast = (t, ms) => { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), ms || 2600); };
+  let lastSnap = localStorage.getItem('an-snap-id') || '';
+
+  function applyData(p, quiet) {
+    const theme = D.theme;
+    D = p; D.theme = theme || 'dark';
+    try { localStorage.setItem('an-cache', JSON.stringify(D)); } catch (e) {}
+    const open = drawer.classList.contains('open');
+    if (quiet) document.body.classList.add('calm');
+    try { render(); } catch (e) { console.error(e); toast('Не все разделы удалось показать: обновите приложение', 4000); }
+    requestAnimationFrame(() => document.body.classList.remove('calm'));
+    if (open) drawer.classList.add('open');
+    $('upd').textContent = 'данные от ' + new Date(D.now).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  }
+
+  // ищем последний снимок в канале за 3 часа (столько ntfy хранит вложения)
+  async function loadSnap() {
+    if (!topic()) return false;
+    const r = await fetch(NTFY + encodeURIComponent(topic()) + '/json?poll=1&since=3h', { cache: 'no-store' });
+    const lines = (await r.text()).split('\n').filter(Boolean).map((l) => { try { return JSON.parse(l); } catch (e) { return null; } })
+      .filter((m) => m && m.event === 'message' && (m.tags || []).includes('snap') && m.attachment && m.attachment.url);
+    const m = lines[lines.length - 1];
+    if (!m) return false;
+    if (m.id === lastSnap && D.now) return true;
+    const data = await (await fetch(m.attachment.url, { cache: 'no-store' })).json();
+    lastSnap = m.id; localStorage.setItem('an-snap-id', m.id);
+    applyData(data, !!D.now);
+    return true;
+  }
+
+  // просим компьютер прислать свежий снимок и ждём его до 40 секунд
+  async function refresh(manual) {
+    if (!topic()) { $('setup').classList.add('on'); return; }
+    if (manual) $('refresh').classList.add('spin');
+    const updWas = $('upd').textContent; $('upd').textContent = 'обновляется…';
+    try {
+      if (!manual) { try { await loadSnap(); } catch (e) {} }   // сразу показать последний снимок, не дожидаясь нового
+      const before = lastSnap;
+      await fetch(NTFY + encodeURIComponent(topic()), { method: 'POST', body: 'снимок' });
+      for (let i = 0; i < 14; i++) {
+        await new Promise((r) => setTimeout(r, 3000));
+        await loadSnap();
+        if (lastSnap !== before) { if (manual) toast('Данные обновлены'); break; }
+        if (i === 13) toast(D.now ? 'Компьютер не ответил – показаны сохранённые данные' : 'Компьютер не ответил. Проверьте, что страница с автоставками открыта', 4200);
+      }
+    } catch (e) {
+      console.error(e);
+      toast(navigator.onLine === false ? 'Нет интернета. Показаны сохранённые данные' : 'Не удалось получить данные с ntfy. Показаны сохранённые', 4000);
+    }
+    $('refresh').classList.remove('spin');
+    if ($('upd').textContent === 'обновляется…') $('upd').textContent = updWas;
+  }
+
+  $('refresh').onclick = () => refresh(true);
+  $('setupBtn').onclick = () => { $('topicIn').value = topic(); $('setup').classList.add('on'); };
+  $('topicOk').onclick = () => {
+    const t = $('topicIn').value.trim();
+    if (!/^[\w-]{3,64}$/.test(t)) { toast('Название канала: латиница, цифры и дефис'); return; }
+    localStorage.setItem('an-topic', t); $('setup').classList.remove('on'); refresh(true);
+  };
+  window.__analyticsUpdate = (p) => applyData(p, true);
+  if (!window.__DEMO__) {
+    if (!topic()) $('setup').classList.add('on');
+    else refresh(false);
+    // приложение снова на экране — подтянуть свежие данные
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && topic()) refresh(false); });
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+  render();
+  setTimeout(() => openIdeas(true), 1400);
+})();
+</script>
+</body></html>
