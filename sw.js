@@ -1,5 +1,5 @@
 // Сохраняет страницу приложения, чтобы оно открывалось и без интернета (с последними данными из кэша).
-const CACHE = 'analitika-v1';
+const CACHE = 'analitika-v2';
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'])));
   self.skipWaiting();

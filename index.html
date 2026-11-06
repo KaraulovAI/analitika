@@ -102,6 +102,25 @@ svg text{font-family:inherit}
 .stat{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)}
 .stat b{font-variant-numeric:tabular-nums}
 .empty{color:var(--mut);padding:30px 0;text-align:center}
+.prgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
+.pr{padding:14px;border-radius:16px;background:rgba(127,127,127,.12);cursor:pointer;transition:transform .2s}
+.pr:hover{transform:translateY(-2px)}
+.pr .h{display:flex;align-items:center;gap:8px;margin-bottom:8px}.pr .h b{font-size:15px}
+.badge{margin-left:auto;font-size:11.5px;font-weight:800;padding:4px 10px;border-radius:999px;color:#fff;white-space:nowrap}
+.b-up{background:#30d158}.b-down{background:#ff9f0a}.b-keep{background:#0a84ff}.b-wait{background:#8e8e93}
+.pr .nums{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;font-size:12px;color:var(--mut);margin-bottom:8px}
+.pr .nums b{display:block;color:var(--fg);font-size:16px}
+.pr .why{font-size:12.5px;line-height:1.4}
+.conv{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin:2px 0 8px}.conv i{display:block;height:100%;border-radius:3px;background:var(--acc);transition:width 1s}
+.exec{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px}
+.bal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.bal>div{padding:12px 14px;border-radius:16px;background:rgba(127,127,127,.12)}
+.bal .l{color:var(--mut);font-size:11.5px;margin-bottom:4px}.bal .v{font-size:24px;font-weight:800;letter-spacing:-.3px;white-space:nowrap}
+.bal .t{font-size:11.5px;color:var(--mut);margin-top:3px}
+.bal .main{background:linear-gradient(135deg,rgba(48,209,88,.28),rgba(100,210,255,.16))}
+@media (max-width:700px){.bal{grid-template-columns:1fr}}
+.exec .tot{font-size:22px;font-weight:800;margin-right:6px}
+@media (max-width:980px){.prgrid{grid-template-columns:1fr}}
 .msgwrap{display:grid;grid-template-columns:250px minmax(0,1fr);gap:18px;align-items:start}
 .ms{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .ms>div{padding:10px 12px;border-radius:14px;background:rgba(127,127,127,.12);cursor:default}
@@ -187,6 +206,10 @@ svg text{font-family:inherit}
   <div class="card glass rise" style="animation-delay:.24s;margin-bottom:16px"><h2>Количество ставок</h2><div class="sub" id="cntSub"></div><div class="chart" id="counts"></div></div>
   <div class="card glass rise" style="animation-delay:.27s;margin-bottom:16px"><h2>Сообщения от заказчиков</h2><div class="sub" id="msgSub"></div>
     <div class="msgwrap"><div id="msgStats"></div><div class="chart" id="msgs"></div></div></div>
+  <div class="card glass rise" style="animation-delay:.28s;margin-bottom:16px"><h2>Доход и баланс</h2><div class="sub" id="incSub"></div>
+    <div id="incBal"></div><div class="msgwrap" style="margin-top:12px"><div id="incStats"></div><div class="chart" id="inc"></div></div></div>
+  <div class="card glass rise" style="animation-delay:.29s;margin-bottom:16px"><h2>Цены и выбор заказчиков</h2><div class="sub" id="prSub"></div>
+    <div id="prExec"></div><div class="prgrid" id="prGroups"></div></div>
   <div class="grid2">
     <div class="card glass rise" style="animation-delay:.3s"><h2>Когда больше всего ставок</h2><div class="sub">День недели × час, за выбранный период</div><div id="heat"></div></div>
     <div class="card glass rise" style="animation-delay:.36s"><h2>Последние ставки</h2><div class="sub" id="lastSub"></div><div class="list" id="last"></div></div>
@@ -607,6 +630,21 @@ svg text{font-family:inherit}
       const d = Math.round((sea.w - sea.pw) * 100 / sea.pw);
       out.push({ t: 'Сообщения', x: 'За неделю вам написали ' + msgWord(sea.w) + (d >= 15 ? ' – на ' + d + '% больше, чем неделей раньше. Спрос растёт, отвечайте заказчикам побыстрее.' : d <= -15 ? ' – на ' + Math.abs(d) + '% меньше, чем неделей раньше. Похоже на затишье: самое время брать больше заказов в работу.' : ', примерно как неделей раньше.') });
     } else if (sea.w) out.push({ t: 'Сообщения', x: 'За неделю вам написали ' + msgWord(sea.w) + '. Чем больше накопится данных, тем точнее будут выводы о сезоне.' });
+    if (D.pricing && D.pricing.groups) {
+      const best = null;
+      const ch = D.pricing.groups.filter((g) => g.act === 'up' || g.act === 'down');
+      if (ch.length) out.push({ t: 'Совет по ценам', x: ch.map((g) => '«' + g.label + '»: ' + (g.act === 'up' ? 'можно поднять' : 'стоит снизить') + ' (обычно выбирают за ' + (g.med ? rub(g.med) : '—') + ').').join(' ') + ' Подробности – в разделе «Цены и выбор заказчиков».' });
+      if (best) out.push({ t: 'Самые выгодные ставки', x: 'Больше всего денег на одну ставку приносят «' + best.label.toLowerCase() + '»: около ' + rub(best.perBid * 100) + ' на каждые 100 ставок.' });
+      if (D.pricing.exec && D.pricing.exec.list) { const w = D.pricing.exec.list.filter((o) => o.status === 'execution'); out.push({ t: 'Загрузка', x: 'Сейчас на выполнении ' + w.length + ' ' + plural(w.length, 'заказ', 'заказа', 'заказов') + ' на ' + rub(w.reduce((a, o) => a + o.price, 0)) + (D.pricing.pending ? ', ещё ' + D.pricing.pending + ' ставок ждут решения заказчиков.' : '.') }); }
+    }
+    if (D.income && D.income.ops.length) {
+      const sumE = (from, to) => D.income.ops.reduce((a, o) => a + ((o[1] === 'o' || o[1] === 'p') && o[0] >= from && o[0] < to ? o[2] : 0), 0);
+      const k = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return dayKey(d); };
+      const a = sumE(k(29), k(-1)), b = sumE(k(59), k(29));
+      const B = D.income.balance;
+      out.push({ t: 'Доход', x: 'За последние 30 дней заработано ' + rub(a) + (b ? (a >= b ? ', это на ' + Math.round((a - b) * 100 / b) + '% больше' : ', это на ' + Math.round((b - a) * 100 / b) + '% меньше') + ', чем за 30 дней до этого' : '') + '.' +
+        (B && B[1] ? ' Ещё ' + rub(B[1]) + ' заморожено до сдачи заказов и поступят на баланс после их приёмки.' : '') });
+    }
     let streak = 0;
     for (let i = ds.n ? 0 : 1; i < 400; i++) { const d = new Date(); d.setDate(d.getDate() - i); const e = (D.daily || {})[dayKey(d)]; if (e && sumBy(e.by || {})) streak++; else break; }
     if (streak >= 3) out.push({ t: 'Серия', x: 'Уже ' + streak + ' ' + plural(streak, 'день', 'дня', 'дней') + ' подряд со ставками. Отличная стабильность!' });
@@ -702,6 +740,130 @@ svg text{font-family:inherit}
     openDrawer(html);
   }
 
+  // ---------- цены и выбор заказчиков ----------
+  const ACT = { up: ['b-up', '▲ Поднять'], down: ['b-down', '▼ Снизить'], keep: ['b-keep', '● Оставить'], wait: ['b-wait', '… Мало данных'] };
+  const pct = (x) => (x * 100).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + '%';
+  function pricingSection() {
+    const P = D.pricing;
+    if (!P) { $('prSub').textContent = ''; $('prGroups').innerHTML = '<div class="empty">Данных о ваших заказах пока нет: скрипт автоставок загрузит их сам в течение нескольких минут.</div>'; $('prExec').innerHTML = ''; return; }
+    $('prSub').textContent = 'За сколько вас выбирают заказчики и что делать с ценой · ' +
+      (P.full ? 'история заказов загружена' : 'история загружается: ' + Math.max(0, P.syncPage - 1) + ' из ' + (P.syncLast || '…') + ' страниц') +
+      (P.scanAt ? ' · обновлено ' + new Date(P.scanAt).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '') + ' · нажмите на карточку';
+    const ex = P.exec && P.exec.list ? P.exec.list : null;
+    const work = ex ? ex.filter((o) => o.status === 'execution') : [];
+    const gar = ex ? ex.filter((o) => o.status !== 'execution') : [];
+    const stName = { execution: 'на выполнении', guarantee: 'на гарантии', rework: 'на доработке' };
+    $('prExec').innerHTML = ex ? '<div class="exec"><span class="tot">' + work.length + '</span><span>на выполнении на <b>' + rub(work.reduce((a, o) => a + o.price, 0)) + '</b></span>' +
+      '<span style="color:var(--mut)">· на гарантии и доработке: ' + gar.length + (P.pending !== null ? ' · ставок ждут решения: ' + P.pending : '') + ' · всего выполнено заказов: ' + P.wonTotal + '</span></div>' : '';
+    $('prExec').style.cursor = ex ? 'pointer' : '';
+    $('prExec').onclick = ex ? () => openDrawer('<h3>Заказы в работе</h3><div style="color:var(--mut);margin-bottom:12px">на выполнении ' + work.length + ' на ' + rub(work.reduce((a, o) => a + o.price, 0)) + '</div>' +
+      ex.map((o) => '<div class="row"><span style="flex:1">' + esc(o.type) + ' <span style="color:var(--mut)">· ' + (stName[o.status] || o.status) + '</span><br><span style="color:var(--mut)">' + esc(o.title) + '</span>' +
+        (o.deadline ? '<br><span style="color:var(--mut);font-size:12px">срок: ' + new Date(o.deadline).toLocaleDateString('ru-RU') + ' · конкурентов было ' + o.comp + '</span>' : '') + '</span><b>' + rub(o.price) + '</b></div>').join('')) : null;
+    $('prGroups').innerHTML = P.groups.map((g, i) => '<div class="pr" data-i="' + i + '"><div class="h"><b>' + g.label + '</b><span class="badge ' + ACT[g.act][0] + '">' + ACT[g.act][1] + '</span></div>' +
+      '<div class="nums"><span>Ваша цена<b>' + rub(g.tpl) + '</b></span><span>Обычно выбирают за<b>' + (g.med ? rub(g.med) : '—') + '</b></span>' +
+      '<span>Заказов за 90 дней<b>' + g.n90 + '</b></span><span>Дороже вашей цены<b>' + (g.n90 ? Math.round(g.above * 100) + '%' : '—') + '</b></span>' +
+      '<span>Доля выбора автоставок<b>' + (g.bids >= 10 ? pct(g.conv) : '—') + '</b></span><span>Конкурентов обычно<b>' + (g.compWon ? Math.round(g.compWon) : '—') + '</b></span></div>' +
+      '<div class="why">' + esc(g.why) + '</div></div>').join('');
+    $('prGroups').querySelectorAll('.pr').forEach((el) => {
+      const g = P.groups[+el.dataset.i];
+      const mx = Math.max(1, ...g.monthly.map((m) => m[1]));
+      const pmx = Math.max(1, ...g.monthly.map((m) => m[2]));
+      const chart = '<div style="display:flex;align-items:flex-end;gap:4px;height:110px;margin:10px 0 4px">' + g.monthly.map((m) =>
+        '<div title="' + m[0] + ': ' + m[1] + ' заказов, в среднем ' + (m[2] ? m[2].toLocaleString('ru-RU') + ' ₽' : '—') + '" style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%">' +
+        '<span style="font-size:9px;color:var(--mut)">' + (m[1] || '') + '</span><div style="width:80%;height:' + Math.max(2, m[1] * 85 / mx) + '%;border-radius:3px 3px 0 0;background:' + css('--acc') + '"></div></div>').join('') + '</div>' +
+        '<div style="display:flex;gap:4px;font-size:9px;color:var(--mut)">' + g.monthly.map((m) => '<span style="flex:1;text-align:center">' + MON[+m[0].slice(5) - 1] + '</span>').join('') + '</div>' +
+        '<div style="margin-top:14px;font-weight:700">Средняя цена выбранных по месяцам</div><div style="display:flex;align-items:flex-end;gap:4px;height:80px;margin:8px 0 4px">' + g.monthly.map((m) =>
+        '<div title="' + m[0] + ': ' + (m[2] ? m[2].toLocaleString('ru-RU') + ' ₽' : '—') + '" style="flex:1;height:' + Math.max(2, m[2] * 100 / pmx) + '%;border-radius:3px 3px 0 0;background:' + (m[2] > g.tpl ? css('--g') : m[2] && m[2] < g.tpl ? css('--o') : css('--line')) + '"></div>').join('') + '</div>' +
+        '<div style="font-size:11px;color:var(--mut)">зелёный – выше вашей цены, оранжевый – ниже</div>';
+      el.onclick = () => openDrawer('<h3>' + g.label + '</h3><div style="color:var(--mut);margin-bottom:12px">ваша цена ' + rub(g.tpl) + '</div>' +
+        '<div style="margin-bottom:12px"><span class="badge ' + ACT[g.act][0] + '" style="margin:0">' + ACT[g.act][1] + '</span></div>' +
+        '<div style="line-height:1.5;margin-bottom:12px">' + esc(g.why) + '</div>' +
+        statRow('Всего ваших заказов этого типа', g.total) + statRow('За последние 90 дней', g.n90) +
+        statRow('Обычно выбирают за (медиана)', g.med ? rub(g.med) : '—') + statRow('Средняя цена за 90 дней', g.avg90 ? rub(g.avg90) : '—') +
+        statRow('Дороже вашей цены', g.n90 ? Math.round(g.above * 100) + '%' : '—') + statRow('Дешевле вашей цены', g.n90 ? Math.round(g.below * 100) + '%' : '—') +
+        statRow('Конкурентов в выбранных заказах', g.compWon ? Math.round(g.compWon) : '—') + statRow('Конкурентов в ожидающих ставках', g.compPend ? Math.round(g.compPend) : '—') +
+        statRow('Автоставок / выбрали', g.bids + ' / ' + g.wonFromBids) + statRow('Доля выбора автоставок', g.bids ? pct(g.conv) : '—') +
+        '<div style="margin-top:16px;font-weight:700">Ваши заказы по месяцам</div>' + chart);
+    });
+  }
+
+  // ---------- доход и баланс ----------
+  const OPN = { o: 'Оплата заказа', p: 'Партнёрская программа', f: 'Заморожено до сдачи заказа', w: 'Вывод денег' };
+  // значения корзины: заработано (o+p), выведено (w), заморожено новых (f)
+  function incOf(b) {
+    const I = D.income, r = { e: 0, w: 0, f: 0, ops: [] };
+    if (!I) return r;
+    const keys = b.isDay ? [b.key] : null, mk = b.isDay ? null : b.key;
+    I.ops.forEach((o) => {
+      if (keys ? o[0] !== keys[0] : o[0].slice(0, 7) !== mk) return;
+      if (o[1] === 'w') r.w += o[2]; else if (o[1] === 'f') r.f += o[2]; else r.e += o[2];
+      r.ops.push(o);
+    });
+    const a = mk && I.agg[mk];
+    if (a) { r.e += a[0] + a[1]; r.w += a[2]; }
+    return r;
+  }
+  function incBuckets() {
+    if (period === 'week' || period === 'month') return buckets(period);
+    const I = D.income, now = new Date();
+    let first = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+    if (period === 'all' && I && I.first) { const [y, m] = I.first.split('-').map(Number); first = new Date(y, m - 1, 1); }
+    const out = [];
+    for (const c = new Date(first); c <= now; c.setMonth(c.getMonth() + 1))
+      out.push({ key: c.getFullYear() + '-' + z(c.getMonth() + 1), label: MON[c.getMonth()], label2: String(c.getFullYear()).slice(2), full: MONF[c.getMonth()] + ' ' + c.getFullYear(), isDay: false });
+    return out;
+  }
+  function openInc(b) {
+    const v = incOf(b);
+    const list = v.ops.slice().sort((x, y) => y[0].localeCompare(x[0]));
+    openDrawer('<h3>' + b.full + '</h3>' + statRow('Заработано', rub(v.e)) + statRow('Выведено', rub(v.w)) + statRow('Заморожено по новым заказам', rub(v.f)) +
+      (list.length ? '<div style="margin-top:14px;font-weight:700">Операции</div>' + list.map((o) => '<div class="row"><span style="flex:1">' + OPN[o[1]] +
+        '<br><span style="color:var(--mut);font-size:12px">' + o[0].split('-').reverse().join('.') + '</span></span><b style="color:' + (o[1] === 'w' ? css('--mut') : o[1] === 'f' ? css('--o') : css('--g')) + '">' +
+        (o[1] === 'w' ? '−' : '+') + rub(o[2]) + '</b></div>').join('')
+        : (v.e || v.w ? '<div style="color:var(--mut);margin-top:12px">По этому месяцу хранятся только итоги.</div>' : '<div class="empty">Операций нет</div>')));
+  }
+  function incomeSection() {
+    const I = D.income;
+    if (!I) { $('incSub').textContent = ''; $('incBal').innerHTML = '<div class="empty">Данных о доходе пока нет: скрипт автоставок загрузит историю операций сам в течение нескольких минут.</div>'; $('incStats').innerHTML = ''; $('inc').innerHTML = ''; return; }
+    const done = I.total && I.loaded >= I.total;
+    $('incSub').textContent = 'Заработанные деньги считаются по оплаченным заказам и партнёрским начислениям, вывод на карту отдельно · ' +
+      (done ? 'история загружена' : 'история загружается: ' + I.loaded + ' из ' + (I.total || '…') + ' месяцев') +
+      (I.at ? ' · обновлено ' + new Date(I.at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '') + ' · нажмите на столбец';
+    // всего за историю
+    let earnAll = 0, outAll = 0;
+    I.ops.forEach((o) => { if (o[1] === 'o' || o[1] === 'p') earnAll += o[2]; else if (o[1] === 'w') outAll += o[2]; });
+    Object.values(I.agg || {}).forEach((a) => { earnAll += a[0] + a[1]; outAll += a[2]; });
+    const B = I.balance;
+    const since = I.first ? MONF[+I.first.slice(5) - 1].replace(/ь$/, 'я').replace(/й$/, 'я').replace(/т$/, 'та') + ' ' + I.first.slice(0, 4) : '';
+    $('incBal').innerHTML = '<div class="bal">' +
+      '<div class="main"><div class="l">На балансе сейчас</div><div class="v">' + (B ? rub(B[0] + B[1]) : '—') + '</div><div class="t">' + (B ? 'доступно ' + rub(B[0]) + ' · заморожено ' + rub(B[1]) : 'обновится при следующей проверке') + '</div></div>' +
+      '<div><div class="l">Заработано за всё время' + (done ? '' : ' (загружается)') + '</div><div class="v">' + rub(earnAll) + '</div><div class="t">' + (since ? 'с ' + since : '') + '</div></div>' +
+      '<div><div class="l">Выведено на карту за всё время</div><div class="v">' + rub(outAll) + '</div><div class="t">' + (earnAll ? Math.round(outAll * 100 / earnAll) + '% от заработанного' : '') + '</div></div></div>';
+    const bs = incBuckets();
+    const vals = bs.map(incOf);
+    const e = vals.reduce((a, v) => a + v.e, 0), w = vals.reduce((a, v) => a + v.w, 0);
+    let prevE = null;
+    if (period === 'week' || period === 'month') prevE = buckets(period, 1).reduce((a, b) => a + incOf(b).e, 0);
+    else if (period === 'year') { const now = new Date(); prevE = 0; for (let i = 12; i < 24; i++) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); prevE += incOf({ key: d.getFullYear() + '-' + z(d.getMonth() + 1), isDay: false }).e; } }
+    const days = period === 'week' ? 7 : period === 'month' ? 30 : Math.max(1, bs.length * 30.4);
+    const dl = prevE ? ' <span class="' + (e >= prevE ? 'up' : 'down') + '" style="font-size:12px">' + (e >= prevE ? '▲' : '▼') + Math.abs(Math.round((e - prevE) * 100 / prevE)) + '%</span>' : '';
+    const best = vals.reduce((m, v, i) => (v.e > (m ? vals[m].e : 0) ? i : m), null);
+    $('incStats').innerHTML = '<div class="ms">' +
+      '<div class="w"><div class="l">Заработано ' + periodName[period] + '</div><div class="v">' + rub(e) + dl + '</div></div>' +
+      '<div><div class="l">Выведено</div><div class="v" style="font-size:16px">' + rub(w) + '</div></div>' +
+      '<div><div class="l">В среднем за день</div><div class="v" style="font-size:16px">' + rub(e / days) + '</div></div>' +
+      '<div class="w"><div class="l">Лучший ' + (bs[0] && bs[0].isDay ? 'день' : 'месяц') + '</div><div class="v" style="font-size:15px">' + (best !== null ? bs[best].full + ' · ' + rub(vals[best].e) : '—') + '</div></div>' +
+      '</div>';
+    barChart($('inc'), bs, (b, i) => incOf(b).e, {
+      h: 240, color: css('--g'), axis: rubShort, top: rubShort,
+      tip: (b) => { const v = incOf(b); return '<b>' + b.full + '</b><br>заработано ' + rub(v.e) + '<br>выведено ' + rub(v.w) + (v.f ? '<br>заморожено по новым заказам ' + rub(v.f) : ''); },
+      click: openInc,
+    });
+    const sv = $('inc').querySelector('svg');
+    sv.insertAdjacentHTML('afterbegin', '<defs><linearGradient id="incG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#30d158"/><stop offset="1" stop-color="#0a84ff"/></linearGradient></defs>');
+    sv.querySelectorAll('.bar').forEach((r) => r.setAttribute('fill', 'url(#incG)'));
+  }
+
   // ---------- сборка ----------
   function render() {
     document.body.classList.toggle('light', D.theme === 'light');
@@ -723,6 +885,8 @@ svg text{font-family:inherit}
       tip: (b) => '<b>' + b.full + '</b><br>' + GROUPS.map((gr) => gr.label + ': ' + (b.by[gr.price] || 0)).join('<br>'),
     });
     msgSection(bs);
+    incomeSection();
+    pricingSection();
     donut(by, rc);
     heat(bs);
     lastList(bs);
